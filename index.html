@@ -329,11 +329,11 @@
 
     const cardWidth = 55;        // mm
     const baseHeight = 60;       // mm (first card)
-    const tabOffset = 5;         // mm increase per card (if stacking enabled)
+    const tabOffset = 7;         // mm increase per card (if stacking enabled) //was 5
     const maxTabs = 9;           // resets after 9
-    const cornerRadius = 4;      // mm
+    const cornerRadius = 5;      // mm //was 4
     const margin = 6;            // mm spacing between cards & edges
-    const holeOffset = 2;        // mm inward from top-left (user wanted ~2mm)
+    const holeOffset = 6;        // mm inward from top-left (user wanted ~2mm)//was 2
     const holeRadius = 3;       // mm
     const topSafe = 10;         // mm top safe area inside card
     const imageAboveTextGap = 5; // mm gap between image bottom and text top
@@ -406,7 +406,7 @@
       }
 
       // draw the text (centered)
-      doc.setFontSize(14);
+      doc.setFontSize(16); //was 14
       doc.setTextColor(c.color || '#000000');
       doc.text(String(c.text || ''), x + cardWidth / 2, textY, { align: 'center' });
 
@@ -419,3 +419,4 @@
   </script>
 </body>
 </html>
+
