@@ -1,188 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <title>PECS Card Creator — Local Sample Images with Preview</title>
+  <meta charset="UTF-8">
+  <title>PECS Card Maker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    input, button { margin: 6px 0; padding: 8px; }
-    #preview, #tempPreview { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
-    .card { border:1px solid #ccc; border-radius:6px; width:120px; padding:6px; text-align:center; background:#fafafa; }
-    .card img { max-width:100%; height:auto; display:block; margin:0 auto 6px; }
-    #sampleImages img { width:80px; margin:5px; cursor:pointer; border:1px solid #ccc; border-radius:4px; }
-    #sampleImages img:hover { border-color:#000; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .controls {
+      margin-bottom: 20px;
+    }
+    .controls input, .controls button, .controls select {
+      margin: 5px;
+    }
+    .card {
+      display: inline-block;
+      width: 50mm;
+      height: 60mm;
+      border: 1px solid #000;
+      margin: 5px;
+      text-align: center;
+      vertical-align: top;
+      position: relative;
+    }
+    .card img {
+      max-width: 80%;
+      max-height: 60%;
+      margin-top: 5px;
+    }
+    .card p {
+      position: absolute;
+      bottom: 5px;
+      width: 100%;
+      font-size: 14px;
+    }
+    #cards {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    #suggestions {
+      border: 1px solid #aaa;
+      max-height: 150px;
+      overflow-y: auto;
+      position: absolute;
+      background: white;
+      display: none;
+      z-index: 1000;
+    }
+    #suggestions div {
+      padding: 5px;
+      cursor: pointer;
+    }
+    #suggestions div:hover {
+      background: #eee;
+    }
   </style>
 </head>
 <body>
-  <h1>PECS Card Creator</h1>
-
-  <div>
-    <input type="text" id="cardText" placeholder="Enter card text" style="width:200px;">
-    <input type="button" id="loadFileXml" value="Choose Image" onclick="document.getElementById('cardImage').click();" />
-    <input type="file" style="display:none;" id="cardImage" name="cardImage"/>
-    
+  <h1>PECS Card Maker</h1>
+  <div class="controls">
+    <input type="text" id="cardText" placeholder="Enter card text">
+    <input type="file" id="cardImage" accept="image/*">
+    <select id="textColor">
+      <option value="black">Black</option>
+      <option value="red">Red</option>
+      <option value="blue">Blue</option>
+      <option value="green">Green</option>
+    </select>
     <button onclick="addCard()">Add Card</button>
     <button onclick="generatePDF()">Generate PDF</button>
-    <button onclick="clearCards()">Clear</button>
-    <br>
-    
-    <label for="cardColor">Text color:</label>
-    <input type="color" id="cardColor" value="#000000">
-    <br>
-
-    <label>
-      <input type="checkbox" id="stackingToggle" checked>
-      Use stacking tabs (taller cards)
-    </label>
+    <div id="suggestions"></div>
   </div>
 
-  <h3>Card in Progress</h3>
-  <div id="tempPreview"></div>
+  <div id="cards"></div>
 
-  <h3>Added Cards</h3>
-  <div id="preview"></div>
-
-  <!-- Sample images (local files) -->
-  <div id="sampleImages">
-    <h3>Sample Images</h3>
-    <img src="images/yes.png" alt="Sample 1" onclick="useSampleImage(this)">
-    <img src="images/no.png" alt="Sample 2" onclick="useSampleImage(this)">
-    <img src="images/red.png" alt="Sample 3" onclick="useSampleImage(this)">
-    <img src="images/orange.png" alt="Sample 4" onclick="useSampleImage(this)">
-    <img src="images/yellow.png" alt="Sample 5" onclick="useSampleImage(this)">
-    <img src="images/green.png" alt="Sample 6" onclick="useSampleImage(this)">
-    <img src="images/blue.png" alt="Sample 7" onclick="useSampleImage(this)">
-    <img src="images/purple.png" alt="Sample 8" onclick="useSampleImage(this)">
-    <img src="images/toilet.png" alt="Sample 9" onclick="useSampleImage(this)">
-    <img src="images/drink.png" alt="Sample 10" onclick="useSampleImage(this)">
-    <img src="images/snack.png" alt="Sample 11" onclick="useSampleImage(this)">
-    <img src="images/wash.png" alt="Sample 12" onclick="useSampleImage(this)">
-  </div>
-
-  <!-- jsPDF -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script>
     const { jsPDF } = window.jspdf;
     const cards = [];
-    let selectedSampleImage = null; // store chosen sample image
-    let tempPreviewImage = null;    // used for live preview
 
-    // Add card to permanent list
-    function addCard() {
-      const text = document.getElementById('cardText').value.trim();
-      const color = document.getElementById('cardColor').value;
-      const fileInput = document.getElementById('cardImage');
+    // Sample image library (extendable later)
+    const sampleImages = {
+      "apple": "sample-images/apple.png",
+      "ball": "sample-images/ball.png",
+      "cat": "sample-images/cat.png",
+      "dog": "sample-images/dog.png"
+    };
 
-      if (!text) {
-        alert('Please enter card text.');
+    const cardTextInput = document.getElementById("cardText");
+    const suggestionsBox = document.getElementById("suggestions");
+
+    cardTextInput.addEventListener("input", () => {
+      const query = cardTextInput.value.toLowerCase();
+      suggestionsBox.innerHTML = "";
+      if (!query) {
+        suggestionsBox.style.display = "none";
         return;
       }
-
-      if (fileInput.files.length > 0) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          cards.push({ text, color, image: reader.result });
-          resetInputs();
-          renderPreview();
-        };
-        reader.readAsDataURL(fileInput.files[0]);
-      } else if (selectedSampleImage) {
-        cards.push({ text, color, image: selectedSampleImage });
-        resetInputs();
-        renderPreview();
+      const matches = Object.keys(sampleImages).filter(key => key.includes(query));
+      if (matches.length > 0) {
+        matches.forEach(match => {
+          const div = document.createElement("div");
+          div.textContent = match;
+          div.onclick = () => {
+            cardTextInput.value = match;
+            document.getElementById("cardImage").dataset.sample = sampleImages[match];
+            suggestionsBox.style.display = "none";
+          };
+          suggestionsBox.appendChild(div);
+        });
+        const rect = cardTextInput.getBoundingClientRect();
+        suggestionsBox.style.left = rect.left + "px";
+        suggestionsBox.style.top = rect.bottom + window.scrollY + "px";
+        suggestionsBox.style.width = rect.width + "px";
+        suggestionsBox.style.display = "block";
       } else {
-        alert('Please choose an image (upload or sample).');
-      }
-    }
-
-    // Choose a sample image
-    function useSampleImage(imgEl) {
-      selectedSampleImage = imgEl.src; 
-      tempPreviewImage = imgEl.src;   
-      updateTempPreview();
-
-      document.querySelectorAll("#sampleImages img").forEach(img => {
-        img.style.borderColor = "#ccc";
-      });
-      imgEl.style.borderColor = "blue";
-    }
-
-    // File upload preview
-    document.getElementById('cardImage').addEventListener('change', function() {
-      if (this.files.length > 0) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          tempPreviewImage = reader.result;
-          updateTempPreview();
-        };
-        reader.readAsDataURL(this.files[0]);
+        suggestionsBox.style.display = "none";
       }
     });
 
-    // Live preview for "card in progress"
-    function updateTempPreview() {
-      const text = document.getElementById('cardText').value.trim();
-      const color = document.getElementById('cardColor').value;
-      const preview = document.getElementById('tempPreview');
-      preview.innerHTML = '';
+    function addCard() {
+      const text = document.getElementById("cardText").value;
+      const fileInput = document.getElementById("cardImage");
+      const textColor = document.getElementById("textColor").value;
 
-      if (tempPreviewImage) {
-        const d = document.createElement('div');
-        d.className = 'card';
-        d.innerHTML = `
-          <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
-            <img src="${tempPreviewImage}" alt="preview" style="max-width:100%; max-height:100%;">
-          </div>
-          <div style="color:${color};"><strong>${escapeHtml(text)}</strong></div>
-        `;
-        preview.appendChild(d);
+      if (!text) return;
+
+      let imageSrc = null;
+
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          imageSrc = e.target.result;
+          createCard(text, imageSrc, textColor);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else if (fileInput.dataset.sample) {
+        imageSrc = fileInput.dataset.sample;
+        createCard(text, imageSrc, textColor);
+        fileInput.dataset.sample = "";
+      } else {
+        createCard(text, null, textColor);
       }
+
+      document.getElementById("cardText").value = "";
+      fileInput.value = "";
     }
 
-    // Reset inputs after adding card
-    function resetInputs() {
-      document.getElementById('cardText').value = '';
-      document.getElementById('cardImage').value = '';
-      selectedSampleImage = null;
-      tempPreviewImage = null;
-      document.querySelectorAll("#sampleImages img").forEach(img => {
-        img.style.borderColor = "#ccc";
-      });
-      document.getElementById('tempPreview').innerHTML = '';
+    function createCard(text, imageSrc, textColor) {
+      const card = { text, image: imageSrc, textColor };
+      cards.push(card);
+
+      const cardDiv = document.createElement("div");
+      cardDiv.className = "card";
+
+      if (imageSrc) {
+        const img = document.createElement("img");
+        img.src = imageSrc;
+        cardDiv.appendChild(img);
+      }
+
+      const p = document.createElement("p");
+      p.textContent = text;
+      p.style.color = textColor;
+      cardDiv.appendChild(p);
+
+      document.getElementById("cards").appendChild(cardDiv);
     }
 
-    // Render added cards
-    function renderPreview() {
-      const preview = document.getElementById('preview');
-      preview.innerHTML = '';
-      cards.forEach((c, i) => {
-        const d = document.createElement('div');
-        d.className = 'card';
-        d.innerHTML = `
-          <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
-            <img src="${c.image}" alt="img" style="max-width:100%; max-height:100%;">
-          </div>
-          <div style="color:${c.color};"><strong>${escapeHtml(c.text)}</strong></div>
-          <div style="margin-top:6px;"><button onclick="removeCard(${i})">Remove</button></div>
-        `;
-        preview.appendChild(d);
-      });
-    }
-
-    function removeCard(index) { cards.splice(index, 1); renderPreview(); }
-    function clearCards() { if (confirm('Clear all cards?')) { cards.length = 0; renderPreview(); } }
-    function escapeHtml(s){ return s ? s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) : ''; }
-
-    // PDF Generation (unchanged for now)
     async function generatePDF() {
-      if (cards.length === 0) { alert('No cards to generate.'); return; }
-      const doc = new jsPDF();
-      let y = 10;
-      for (let c of cards) {
-        doc.text(c.text, 10, y);
-        y += 20;
+      const pdf = new jsPDF();
+      const cardWidth = 50;
+      const cardHeight = 60;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const cols = Math.floor((pageWidth - margin * 2) / cardWidth);
+      let x = margin, y = margin;
+
+      for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        pdf.setDrawColor(0);
+        pdf.rect(x, y, cardWidth, cardHeight);
+
+        if (card.image) {
+          try {
+            const img = await loadImage(card.image);
+            pdf.addImage(img, "PNG", x + 5, y + 5, cardWidth - 10, cardHeight - 20);
+          } catch (e) {
+            console.warn("Image load failed for PDF:", card.image);
+          }
+        }
+
+        pdf.setTextColor(card.textColor || "black");
+        pdf.text(card.text, x + cardWidth / 2, y + cardHeight - 5, { align: "center" });
+
+        x += cardWidth + 5;
+        if (x + cardWidth > pageWidth - margin) {
+          x = margin;
+          y += cardHeight + 5;
+          if (y + cardHeight > pageHeight - margin) {
+            pdf.addPage();
+            y = margin;
+          }
+        }
       }
-      doc.save('pecs-cards.pdf');
+
+      pdf.save("pecs_cards.pdf");
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
     }
   </script>
 </body>
