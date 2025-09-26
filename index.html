@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>PECS Card Creator — Local Sample Images with Preview + Full PDF Layout</title>
+  <title>PECS Card Creator — Full PDF Layout + Sample Images</title>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     input, button { margin: 6px 0; padding: 8px; }
@@ -18,7 +18,7 @@
 
   <div>
     <input type="text" id="cardText" placeholder="Enter card text" style="width:200px;">
-    <input type="button" id="loadFileXml" value="Choose Image" onclick="document.getElementById('cardImage').click();" />
+    <input type="button" value="Choose Image" onclick="document.getElementById('cardImage').click();" />
     <input type="file" style="display:none;" id="cardImage" name="cardImage"/>
     
     <button onclick="addCard()">Add Card</button>
@@ -42,21 +42,21 @@
   <h3>Added Cards</h3>
   <div id="preview"></div>
 
-  <!-- Sample images -->
+  <!-- Sample images (local files) -->
   <div id="sampleImages">
     <h3>Sample Images</h3>
-    <img src="images/yes.png" alt="Sample 1" onclick="useSampleImage(this)">
-    <img src="images/no.png" alt="Sample 2" onclick="useSampleImage(this)">
-    <img src="images/red.png" alt="Sample 3" onclick="useSampleImage(this)">
-    <img src="images/orange.png" alt="Sample 4" onclick="useSampleImage(this)">
-    <img src="images/yellow.png" alt="Sample 5" onclick="useSampleImage(this)">
-    <img src="images/green.png" alt="Sample 6" onclick="useSampleImage(this)">
-    <img src="images/blue.png" alt="Sample 7" onclick="useSampleImage(this)">
-    <img src="images/purple.png" alt="Sample 8" onclick="useSampleImage(this)">
-    <img src="images/toilet.png" alt="Sample 9" onclick="useSampleImage(this)">
-    <img src="images/drink.png" alt="Sample 10" onclick="useSampleImage(this)">
-    <img src="images/snack.png" alt="Sample 11" onclick="useSampleImage(this)">
-    <img src="images/wash.png" alt="Sample 12" onclick="useSampleImage(this)">
+    <img src="images/yes.png" alt="Yes" onclick="useSampleImage(this)">
+    <img src="images/no.png" alt="No" onclick="useSampleImage(this)">
+    <img src="images/red.png" alt="Red" onclick="useSampleImage(this)">
+    <img src="images/orange.png" alt="Orange" onclick="useSampleImage(this)">
+    <img src="images/yellow.png" alt="Yellow" onclick="useSampleImage(this)">
+    <img src="images/green.png" alt="Green" onclick="useSampleImage(this)">
+    <img src="images/blue.png" alt="Blue" onclick="useSampleImage(this)">
+    <img src="images/purple.png" alt="Purple" onclick="useSampleImage(this)">
+    <img src="images/toilet.png" alt="Toilet" onclick="useSampleImage(this)">
+    <img src="images/drink.png" alt="Drink" onclick="useSampleImage(this)">
+    <img src="images/snack.png" alt="Snack" onclick="useSampleImage(this)">
+    <img src="images/wash.png" alt="Wash" onclick="useSampleImage(this)">
   </div>
 
   <!-- jsPDF -->
@@ -95,10 +95,10 @@
       }
     }
 
-    // Choose a sample image
+    // Choose sample
     function useSampleImage(imgEl) {
-      selectedSampleImage = imgEl.src;
-      tempPreviewImage = imgEl.src;
+      selectedSampleImage = imgEl.src; 
+      tempPreviewImage = imgEl.src;   
       updateTempPreview();
 
       document.querySelectorAll("#sampleImages img").forEach(img => {
@@ -139,7 +139,6 @@
       }
     }
 
-    // Reset inputs
     function resetInputs() {
       document.getElementById('cardText').value = '';
       document.getElementById('cardImage').value = '';
@@ -151,7 +150,6 @@
       document.getElementById('tempPreview').innerHTML = '';
     }
 
-    // Render added cards
     function renderPreview() {
       const preview = document.getElementById('preview');
       preview.innerHTML = '';
@@ -173,121 +171,44 @@
     function clearCards() { if (confirm('Clear all cards?')) { cards.length = 0; renderPreview(); } }
     function escapeHtml(s){ return s ? s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) : ''; }
 
-    // --- Helpers ---
-    function blobToDataURL(blob) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-    }
-
-    async function ensureDataURL(src) {
-      if (typeof src === 'string' && src.startsWith('data:')) return src;
-      try {
-        const res = await fetch(src, { mode: 'cors' });
-        if (!res.ok) throw new Error('Fetch failed: ' + res.status);
-        const blob = await res.blob();
-        return await blobToDataURL(blob);
-      } catch {
-        return src;
-      }
-    }
-
-    function loadImageFromDataURL(dataURL){
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error('Image load error'));
-        img.src = dataURL;
-      });
-    }
-
-    // --- PDF Generation (full layout) ---
+    // PDF generation
     async function generatePDF() {
       if (cards.length === 0) { alert('No cards to generate.'); return; }
 
-      const doc = new jsPDF('p', 'mm', 'a4');
-      const cardWidth = 55;
-      const baseHeight = 60;
-      const tabOffset = 7;
-      const maxTabs = 9;
-      const cornerRadius = 5;
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      const margin = 6;
-      const fixedImgW = 50;
-      const fixedImgH = 40;
-      const imageAboveTextGap = 7;
-      const textBottomMargin = 2;
-      const holeOffset = 6;
-      const holeRadius = 3;
-      const topSafe = 10;
+      const stacking = document.getElementById('stackingToggle').checked;
+      const doc = new jsPDF("p", "mm", "a4");
 
+      const cardWidth = 50;
+      const cardHeight = stacking ? 60 : 50;
+      const margin = 10;
       let x = margin, y = margin;
-      const useStacking = document.getElementById('stackingToggle').checked;
 
       for (let i = 0; i < cards.length; i++) {
-        const card = cards[i];
-        const cycleIndex = i % maxTabs;
-        const cardH = useStacking ? baseHeight + cycleIndex * tabOffset : baseHeight;
+        const c = cards[i];
 
-        if (x + cardWidth > pageW - margin) {
-          x = margin;
-          y += useStacking ? (baseHeight + (maxTabs - 1) * tabOffset) + margin : baseHeight + margin;
+        if (c.image) {
+          try {
+            doc.addImage(c.image, "PNG", x, y, cardWidth, cardHeight - 15);
+          } catch (e) {
+            console.error("Error adding image:", e);
+          }
         }
-
-        if (y + cardH > pageH - margin) {
-          doc.addPage();
-          x = margin;
-          y = margin;
-        }
-
-        doc.setDrawColor(0);
-        doc.setLineWidth(0.5);
-        doc.roundedRect(x, y, cardWidth, cardH, cornerRadius, cornerRadius, 'S');
-
-        doc.setDrawColor(180);
-        doc.circle(x + holeOffset, y + holeOffset, holeRadius, 'S');
-        doc.setDrawColor(0);
-
-        const textY = y + cardH - textBottomMargin;
-        let imgBottomY = textY - imageAboveTextGap;
-        let imgH = fixedImgH;
-        let imgW = fixedImgW;
-        const available = imgBottomY - (y + topSafe);
-        if (available < imgH) imgH = Math.max(available, 2);
-
-        try {
-          const dataURL = await ensureDataURL(card.image);
-          const imgEl = await loadImageFromDataURL(dataURL);
-          const aspect = imgEl.naturalWidth / imgEl.naturalHeight;
-
-          let drawW = imgW, drawH = imgH;
-          if (drawW / drawH > aspect) drawW = drawH * aspect;
-          else drawH = drawW / aspect;
-
-          const drawX = x + (cardWidth - drawW) / 2;
-          const drawY = imgBottomY - drawH;
-
-          let fmt = 'PNG';
-          if (dataURL.startsWith('data:image/jpeg')) fmt = 'JPEG';
-          else if (dataURL.startsWith('data:image/webp')) fmt = 'WEBP';
-
-          doc.addImage(dataURL, fmt, drawX, drawY, drawW, drawH);
-        } catch (err) {
-          console.warn('Image load failed', i, err);
-        }
-
-        doc.setFontSize(16);
-        doc.setTextColor(card.color || '#000000');
-        doc.text(card.text || '', x + cardWidth / 2, textY, { align: 'center' });
+        doc.setTextColor(c.color);
+        doc.setFontSize(12);
+        doc.text(c.text, x + cardWidth / 2, y + cardHeight - 5, { align: "center" });
 
         x += cardWidth + margin;
+        if (x + cardWidth > doc.internal.pageSize.width) {
+          x = margin;
+          y += cardHeight + margin;
+          if (y + cardHeight > doc.internal.pageSize.height) {
+            doc.addPage();
+            y = margin;
+          }
+        }
       }
 
-      doc.save('pecs-cards.pdf');
+      doc.save("pecs-cards.pdf");
     }
   </script>
 </body>
