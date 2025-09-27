@@ -14,8 +14,17 @@
     .card img { max-width:100%; height:auto; display:block; margin:0 auto 6px; }
 
     /* Sample images */
-    #sampleImages img { width:80px; margin:5px; cursor:pointer; border:2px solid #ccc; border-radius:4px; box-sizing:border-box; }
-    #sampleImages img:hover { border-color:#000; }
+    #sampleImages img {
+  width: 80px;
+  height: 80px;          /* make them square */
+  object-fit: contain;   /* keeps aspect ratio, adds whitespace if needed */
+  background: white;     /* optional – gives a clean backdrop */
+  padding: 4px;          /* optional – breathing room */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 
     /* Suggestions dropdown */
     .inputWrap { position:relative; display:inline-block; }
@@ -421,5 +430,6 @@
   </script>
 </body>
 </html>
+
 
 
