@@ -298,6 +298,13 @@
     });
   }
 
+    function clearCards(){ 
+  if (confirm('Clear all cards?')) { 
+    cards.length = 0; 
+    renderPreview(); 
+  } 
+}
+
 
   function removeCard(i){ cards.splice(i,1); renderPreview(); }
    // --- Safe escape for HTML ---
@@ -460,6 +467,7 @@
   </script>
 </body>
 </html>
+
 
 
 
