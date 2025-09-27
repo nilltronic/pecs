@@ -215,22 +215,24 @@
     showSuggestions();
   }
 
-  // update the "Card in Progress" live preview
+  // --- Live preview for "card in progress" ---
   function updateTempPreview() {
     const text = document.getElementById('cardText').value.trim();
     const color = document.getElementById('cardColor').value;
-    tempPreviewEl.innerHTML = '';
-    if (!tempPreviewImage && !text) return;
+    const preview = document.getElementById('tempPreview');
+    preview.innerHTML = '';
 
-    const d = document.createElement('div');
-    d.className = 'card';
-    d.innerHTML = `
-      <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
-        ${ tempPreviewImage ? `<img src="${tempPreviewImage}" alt="preview" style="max-width:100%; max-height:100%;">` : '' }
-      </div>
-      <div style="color:${color};"><strong>${escapeHtml(text)}</strong></div>
-    `;
-    tempPreviewEl.appendChild(d);
+    if (tempPreviewImage) {
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `
+        <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
+          <img src="${tempPreviewImage}" alt="preview" style="max-width:100%; max-height:100%;">
+        </div>
+        <div style="color:${color};"><strong>${escapeHtml(text)}</strong></div>
+      `;
+      preview.appendChild(d);
+    }
   }
 
   // adds a new card to the list (upload or chosen sample)
@@ -266,7 +268,8 @@
     hideSuggestions();
   }
 
-  function renderPreview(){
+// --- Render added cards ---
+  function renderPreview() {
     const preview = document.getElementById('preview');
     preview.innerHTML = '';
     cards.forEach((c, i) => {
@@ -283,12 +286,16 @@
     });
   }
 
+
   function removeCard(i){ cards.splice(i,1); renderPreview(); }
-  function escapeHtml(s){ 
-  return s ? s.replace(/[&<>"]/g, c => (
-    {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]
-  )) : ''; 
-}
+   // --- Safe escape for HTML ---
+  function escapeHtml(s) { 
+    return s
+      ? s.replace(/[&<>"]/g, c => (
+          { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]
+        ))
+      : ''; 
+  }
 
 
 
@@ -441,6 +448,7 @@
   </script>
 </body>
 </html>
+
 
 
 
