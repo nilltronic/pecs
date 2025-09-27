@@ -25,6 +25,16 @@
   cursor: pointer;
 }
 
+    #colorPreview {
+  display:inline-block;
+  width: 30px;
+  height: 30px;
+  margin-left: 8px;
+  border: 1px solid #ccc;
+  vertical-align: middle;
+}
+
+
     #cardColor {
   width: 40px;    /* make the color picker square */
   height: 40px;
@@ -74,7 +84,9 @@
     <button onclick="clearCards()">Clear</button>
 
     <label for="cardColor">Text color:</label>
-    <input type="color" id="cardColor" value="#000000">
+<input type="color" id="cardColor" value="#000000" onchange="updateColorPreview()">
+<div id="colorPreview"></div>
+
     
     <label>
       <input type="checkbox" id="stackingToggle" checked>
@@ -165,6 +177,13 @@
     highlightSample(imgEl.src);
     updateTempPreview();
   }
+
+    function updateColorPreview() {
+  document.getElementById('colorPreview').style.background = 
+    document.getElementById('cardColor').value;
+}
+updateColorPreview(); // run once at startup
+
 
   // highlight a sample image in the gallery by src
   function highlightSample(src) {
@@ -460,6 +479,7 @@
   </script>
 </body>
 </html>
+
 
 
 
