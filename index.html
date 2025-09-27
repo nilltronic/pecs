@@ -202,7 +202,10 @@
       row.innerHTML = `<img src="${item.src}" alt="${escapeHtml(item.name)}"><div class="label">${escapeHtml(item.name)}</div>`;
       row.onclick = () => {
         // Fill text (but do not auto-add). Set the selected sample to this image, show temp preview.
+        //cardTextInput.value = item.name;
+        if (!cardTextInput.value.trim()) {
         cardTextInput.value = item.name;
+        }
         selectedSampleImage = item.src;
         tempPreviewImage = item.src;
         highlightSample(item.src);
@@ -448,6 +451,7 @@
   </script>
 </body>
 </html>
+
 
 
 
