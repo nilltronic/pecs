@@ -286,7 +286,8 @@
   function removeCard(i){ cards.splice(i,1); renderPreview(); }
   function clearCards(){ if (confirm('Clear all cards?')) { cards.length = 0; renderPreview(); } }
   //function escapeHtml(s){ return s ? s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) : ''; }
-    function escapeHtml(s){ return s ? s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) : ''; 
+  //function escapeHtml(s){ return s ? s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) : ''; 
+    function escapeHtml(s){ return s ? s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])) : ''; }
 }
 
 
@@ -439,6 +440,7 @@
   </script>
 </body>
 </html>
+
 
 
 
