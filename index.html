@@ -5,36 +5,69 @@
   <title>PECS Card Creator — Suggestions + Full PDF</title>
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
-  /* Add modal styling */
-  #editModal {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5);
-    justify-content: center;
-    align-items: center;
-    z-index: 3000;
-  }
-  #editModal .modal-content {
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 400px;
-    width: 90%;
-  }
-  #editModal input, #editModal button {
-    margin: 6px 0;
-    padding: 8px;
-    width: 100%;
-  }
-  #editModal img {
-    max-width: 100%;
-    height: auto;
-    margin: 8px 0;
-    display: block;
-  }
-</style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { margin: 6px 0; padding: 8px; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
+    /* Previews and cards */
+    #preview, #tempPreview { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    .card { border:1px solid #ccc; border-radius:6px; width:120px; padding:6px; text-align:center; background:#fafafa; box-sizing:border-box; }
+    .card img { max-width:100%; height:auto; display:block; margin:0 auto 6px; }
+
+    /* Sample images */
+    #sampleImages img {
+  width: 80px;
+  height: 80px;          /* make them square */
+  object-fit: contain;   /* keeps aspect ratio, adds whitespace if needed */
+  background: white;     /* optional – gives a clean backdrop */
+  padding: 4px;          /* optional – breathing room */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+    #cardColor {
+  width: 40px;    /* make the color picker square */
+  height: 40px;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.sortable-ghost {
+  opacity: 0.4;
+}
+
+.sortable-chosen {
+  border: 2px dashed #888;
+}
+
+.sortable-drag {
+  transform: rotate(3deg);
+}
+
+
+    /* Suggestions dropdown */
+    .inputWrap { position:relative; display:inline-block; }
+    #suggestions {
+      position:absolute;
+      top: calc(100% + 6px);
+      left:0;
+      width: 260px;
+      background:#fff;
+      border:1px solid #ccc;
+      border-radius:4px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.12);
+      max-height:200px;
+      overflow:auto;
+      z-index:2000;
+      display:none;
+    }
+    #suggestions .item { display:flex; align-items:center; gap:8px; padding:6px; cursor:pointer; }
+    #suggestions .item:hover { background:#f3f3f3; }
+    #suggestions img { width:36px; height:36px; object-fit:contain; border:1px solid #eee; border-radius:3px; }
+    #suggestions .label { font-size:14px; }
+  </style>
 </head>
 <body>
   <h1>PECS Card Creator</h1>
@@ -88,19 +121,6 @@
     <img src="images/stop.png" alt="Stop" onclick="useSampleImage(this)">
     <img src="images/sit.png" alt="Sit" onclick="useSampleImage(this)">
   </div>
-  #sampleImages img {
-  width: 80px;           /* Keeps them thumbnail size */
-  height: auto;          /* Preserve aspect ratio */
-  margin: 5px;
-  cursor: pointer;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  object-fit: contain;   /* Keeps odd-shaped images tidy */
-}
-#sampleImages img:hover {
-  border-color: #000;
-}
-
 
   <!-- jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -173,43 +193,6 @@ new Sortable(document.getElementById('preview'), {
   }
 });
 
-let editIndex = null; // which card is being edited
-
-function openEdit(i) {
-  editIndex = i;
-  const c = cards[i];
-  document.getElementById('editText').value = c.text;
-  document.getElementById('editColor').value = c.color || "#000000";
-  document.getElementById('editImagePreview').src = c.image;
-  document.getElementById('editModal').style.display = 'flex';
-}
-
-function closeEdit() {
-  editIndex = null;
-  document.getElementById('editModal').style.display = 'none';
-  document.getElementById('editImageUpload').value = '';
-}
-
-function saveEdit() {
-  if (editIndex === null) return;
-  const text = document.getElementById('editText').value.trim();
-  const color = document.getElementById('editColor').value;
-  const imgFile = document.getElementById('editImageUpload').files[0];
-
-  if (imgFile) {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      cards[editIndex] = { text, color, image: reader.result };
-      renderPreview();
-      closeEdit();
-    };
-    reader.readAsDataURL(imgFile);
-  } else {
-    cards[editIndex] = { text, color, image: cards[editIndex].image };
-    renderPreview();
-    closeEdit();
-  }
-}
 
 
   // highlight a sample image in the gallery by src
@@ -328,25 +311,21 @@ function saveEdit() {
 
 // --- Render added cards ---
   function renderPreview() {
-  const preview = document.getElementById('preview');
-  preview.innerHTML = '';
-  cards.forEach((c, i) => {
-    const d = document.createElement('div');
-    d.className = 'card';
-    d.innerHTML = `
-      <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
-        <img src="${c.image}" alt="img" style="max-width:100%; max-height:100%;">
-      </div>
-      <div style="color:${c.color};"><strong>${escapeHtml(c.text)}</strong></div>
-      <div style="margin-top:6px;">
-        <button onclick="openEdit(${i})">Edit</button>
-        <button onclick="removeCard(${i})">Remove</button>
-      </div>
-    `;
-    preview.appendChild(d);
-  });
-}
-
+    const preview = document.getElementById('preview');
+    preview.innerHTML = '';
+    cards.forEach((c, i) => {
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `
+        <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
+          <img src="${c.image}" alt="img" style="max-width:100%; max-height:100%;">
+        </div>
+        <div style="color:${c.color};"><strong>${escapeHtml(c.text)}</strong></div>
+        <div style="margin-top:6px;"><button onclick="removeCard(${i})">Remove</button></div>
+      `;
+      preview.appendChild(d);
+    });
+  }
 
     function clearCards(){ 
   if (confirm('Clear all cards?')) { 
@@ -515,25 +494,7 @@ function saveEdit() {
     doc.save('pecs-cards.pdf');
   }
   </script>
-  <!-- Edit Modal -->
-<div id="editModal">
-  <div class="modal-content">
-    <h3>Edit Card</h3>
-    <input type="text" id="editText" placeholder="Card text">
-    <input type="color" id="editColor">
-    <img id="editImagePreview" src="" alt="Current Image">
-    <input type="file" id="editImageUpload">
-    <div style="margin-top:10px; text-align:right;">
-      <button onclick="saveEdit()">Save</button>
-      <button onclick="closeEdit()">Cancel</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
-
-
-
 
 
