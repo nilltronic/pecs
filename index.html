@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <title>PECS Card Creator — Suggestions + Full PDF</title>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     input, button { margin: 6px 0; padding: 8px; }
@@ -32,6 +33,17 @@
   border: 1px solid #ccc;
   border-radius: 4px;
   cursor: pointer;
+}
+.sortable-ghost {
+  opacity: 0.4;
+}
+
+.sortable-chosen {
+  border: 2px dashed #888;
+}
+
+.sortable-drag {
+  transform: rotate(3deg);
 }
 
 
@@ -165,6 +177,15 @@
     highlightSample(imgEl.src);
     updateTempPreview();
   }
+
+    // Enable drag & drop reordering
+new Sortable(document.getElementById('cardsContainer'), {
+  animation: 150,
+  ghostClass: 'sortable-ghost',
+  chosenClass: 'sortable-chosen',
+  dragClass: 'sortable-drag',
+});
+
 
   // highlight a sample image in the gallery by src
   function highlightSample(src) {
@@ -467,6 +488,7 @@
   </script>
 </body>
 </html>
+
 
 
 
