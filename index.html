@@ -1,513 +1,167 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <title>PECS Card Creator — Suggestions + Full PDF</title>
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    input, button { margin: 6px 0; padding: 8px; }
-    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+<style>
+  .card {
+    position: relative;
+    border: 1px solid black;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    margin: 5px;
+    padding: 5px;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
 
-    /* Previews and cards */
-    #preview, #tempPreview { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
-    .card { border:1px solid #ccc; border-radius:6px; width:120px; padding:6px; text-align:center; background:#fafafa; box-sizing:border-box; }
-    .card img { max-width:100%; height:auto; display:block; margin:0 auto 6px; }
+  .card img {
+    max-width: 80%;
+    max-height: 60%;
+    object-fit: contain;
+    margin-bottom: 5mm;
+  }
 
-    /* Sample images */
-    #sampleImages img {
-  width: 80px;
-  height: 80px;          /* make them square */
-  object-fit: contain;   /* keeps aspect ratio, adds whitespace if needed */
-  background: white;     /* optional – gives a clean backdrop */
-  padding: 4px;          /* optional – breathing room */
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-}
+  .grab-handle {
+    position: absolute;
+    top: 2px;
+    right: 22px;
+    cursor: grab;
+    font-size: 14px;
+    color: #555;
+  }
 
-    #cardColor {
-  width: 40px;    /* make the color picker square */
-  height: 40px;
-  padding: 0;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.sortable-ghost {
-  opacity: 0.4;
-}
+  .delete-btn {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    cursor: pointer;
+    font-size: 14px;
+    color: red;
+  }
 
-.sortable-chosen {
-  border: 2px dashed #888;
-}
+  /* Modal styling */
+  #editModal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.5);
+  }
 
-.sortable-drag {
-  transform: rotate(3deg);
-}
+  #editModalContent {
+    background: white;
+    margin: 10% auto;
+    padding: 20px;
+    width: 300px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+</style>
 
+<div id="preview"></div>
 
-    /* Suggestions dropdown */
-    .inputWrap { position:relative; display:inline-block; }
-    #suggestions {
-      position:absolute;
-      top: calc(100% + 6px);
-      left:0;
-      width: 260px;
-      background:#fff;
-      border:1px solid #ccc;
-      border-radius:4px;
-      box-shadow:0 2px 6px rgba(0,0,0,0.12);
-      max-height:200px;
-      overflow:auto;
-      z-index:2000;
-      display:none;
-    }
-    #suggestions .item { display:flex; align-items:center; gap:8px; padding:6px; cursor:pointer; }
-    #suggestions .item:hover { background:#f3f3f3; }
-    #suggestions img { width:36px; height:36px; object-fit:contain; border:1px solid #eee; border-radius:3px; }
-    #suggestions .label { font-size:14px; }
-  </style>
-</head>
-<body>
-  <h1>PECS Card Creator</h1>
-
-  <div class="row">
-    <div class="inputWrap">
-      <input type="text" id="cardText" placeholder="Enter card text" style="width:260px;">
-      <div id="suggestions" aria-hidden="true"></div>
-    </div>
-
-    <input type="button" value="Choose Image" onclick="document.getElementById('cardImage').click();" />
-    <input type="file" style="display:none;" id="cardImage" name="cardImage"/>
-
-    <button onclick="addCard()">Add Card</button>
-    <button onclick="generatePDF()">Generate PDF</button>
-    <button onclick="clearCards()">Clear</button>
-
-    <label for="cardColor">Text color:</label>
-    <input type="color" id="cardColor" value="#000000">
-    
-    <label>
-      <input type="checkbox" id="stackingToggle" checked>
-      Use stacking tabs
-    </label>
+<!-- Edit Modal -->
+<div id="editModal">
+  <div id="editModalContent">
+    <label>Text: <input type="text" id="editText"></label>
+    <label>Color: <input type="color" id="editColor"></label>
+    <label>Change Image: <input type="file" id="editImage" accept="image/*"></label>
+    <button id="saveEdit">Save</button>
+    <button id="cancelEdit">Cancel</button>
   </div>
+</div>
 
-  <h3>Card in Progress</h3>
-  <div id="tempPreview"></div>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+  let cards = [];
+  let editIndex = null;
 
-  <h3>Added Cards</h3>
-  <div id="preview"></div>
-
-  <h3>Sample Images</h3>
-  <div id="sampleImages">
-    <!-- Keep these in your images/ folder -->
-    <img src="images/yes.png" alt="Yes" onclick="useSampleImage(this)">
-    <img src="images/no.png" alt="No" onclick="useSampleImage(this)">
-    <img src="images/red.png" alt="Red" onclick="useSampleImage(this)">
-    <img src="images/orange.png" alt="Orange" onclick="useSampleImage(this)">
-    <img src="images/yellow.png" alt="Yellow" onclick="useSampleImage(this)">
-    <img src="images/green.png" alt="Green" onclick="useSampleImage(this)">
-    <img src="images/blue.png" alt="Blue" onclick="useSampleImage(this)">
-    <img src="images/purple.png" alt="Purple" onclick="useSampleImage(this)">
-    <img src="images/toilet.png" alt="Toilet" onclick="useSampleImage(this)">
-    <img src="images/drink.png" alt="Drink" onclick="useSampleImage(this)">
-    <img src="images/snack.png" alt="Snack" onclick="useSampleImage(this)">
-    <img src="images/wash.png" alt="Wash" onclick="useSampleImage(this)">
-    <img src="images/home.png" alt="Home" onclick="useSampleImage(this)">
-    <img src="images/tidy.png" alt="Tidy" onclick="useSampleImage(this)">
-    <img src="images/line.png" alt="Line" onclick="useSampleImage(this)">
-    <img src="images/stop.png" alt="Stop" onclick="useSampleImage(this)">
-  </div>
-
-  <!-- jsPDF -->
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script>
-  const { jsPDF } = window.jspdf;
-
-  // ---- data structures ----
-  const cards = [];               // added cards
-  let selectedSampleImage = null; // chosen (but not added) sample image
-  let tempPreviewImage = null;    // what's displayed in the "Card in Progress"
-
-  // Improved symbol library: each entry has a primary name and keywords array
-  // Add synonyms/aliases in the keywords array (lowercase).
-  const symbolLibrary = [
-    { name: "Red", src: "images/red.png", keywords: ["red","colour red","color red"] },
-    { name: "Orange", src: "images/orange.png", keywords: ["orange"] },
-    { name: "Yellow", src: "images/yellow.png", keywords: ["yellow"] },
-    { name: "Green", src: "images/green.png", keywords: ["green"] },
-    { name: "Blue", src: "images/blue.png", keywords: ["blue"] },
-    { name: "Purple", src: "images/purple.png", keywords: ["purple"] },
-    { name: "Yes", src: "images/yes.png", keywords: ["yes","affirm","ok"] },
-    { name: "No", src: "images/no.png", keywords: ["no","not"] },
-    { name: "Drink", src: "images/drink.png", keywords: ["drink","drink water","cup"] },
-    { name: "Snack", src: "images/snack.png", keywords: ["snack","food"] },
-    { name: "Toilet", src: "images/toilet.png", keywords: ["toilet","loo","bathroom","toilette"] },
-    { name: "Wash", src: "images/wash.png", keywords: ["wash","wash hands","sink"] },
-    { name: "Home", src: "images/home.png", keywords: ["home","house"] },
-    { name: "Tidy", src: "images/tidy.png", keywords: ["tidy","clean","clean up"] },
-    { name: "Line", src: "images/line.png", keywords: ["line","line up"] },
-    { name: "Stop", src: "images/stop.png", keywords: ["stop","don't","wait"] }
-    // add more entries here and don't forget a comma
-  ];
-
-  // ---- UI hooks ----
-  const cardTextInput = document.getElementById('cardText');
-  const suggestionsEl = document.getElementById('suggestions');
-  const sampleImagesContainer = document.getElementById('sampleImages');
-  const tempPreviewEl = document.getElementById('tempPreview');
-
-  // update suggestions as user types
-  cardTextInput.addEventListener('input', onTextInput);
-  cardTextInput.addEventListener('focus', onTextInput);
-
-  // hide suggestions if clicking outside
-  document.addEventListener('click', (e) => {
-    if (!suggestionsEl.contains(e.target) && e.target !== cardTextInput) {
-      hideSuggestions();
-    }
-  });
-
-  // When user chooses a sample image by clicking the thumbnail
-  function useSampleImage(imgEl) {
-    selectedSampleImage = imgEl.src;
-    tempPreviewImage = imgEl.src;
-    highlightSample(imgEl.src);
-    updateTempPreview();
-  }
-
-    // Enable drag & drop reordering of added cards
-new Sortable(document.getElementById('preview'), {
-  animation: 150,
-  ghostClass: 'sortable-ghost',
-  chosenClass: 'sortable-chosen',
-  dragClass: 'sortable-drag',
-  onEnd: function (evt) {
-    // Update the cards[] array to reflect new order
-    const [moved] = cards.splice(evt.oldIndex, 1);
-    cards.splice(evt.newIndex, 0, moved);
-  }
-});
-
-
-
-  // highlight a sample image in the gallery by src
-  function highlightSample(src) {
-    document.querySelectorAll('#sampleImages img').forEach(img => {
-      img.style.borderColor = (img.src === src) ? '#007bff' : '#ccc';
-    });
-  }
-
-  // When user chooses file upload, prepare live preview
-  document.getElementById('cardImage').addEventListener('change', function() {
-    const f = this.files && this.files[0];
-    if (!f) return;
-    selectedSampleImage = null; // file upload takes priority
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      tempPreviewImage = reader.result;
-      highlightSample(null);
-      updateTempPreview();
-    };
-    reader.readAsDataURL(f);
-  });
-
-  // show/hide suggestions
-  function hideSuggestions(){ suggestionsEl.style.display = 'none'; suggestionsEl.innerHTML = ''; }
-  function showSuggestions(){ suggestionsEl.style.display = 'block'; }
-
-  // input handler -> create suggestion list
-  function onTextInput(){
-    const q = (cardTextInput.value || '').toLowerCase().trim();
-    if (!q) { hideSuggestions(); updateTempPreview(); return; }
-
-    const matches = symbolLibrary.filter(item => {
-      // match primary name or any keyword
-      if (item.name && item.name.toLowerCase().includes(q)) return true;
-      return item.keywords && item.keywords.some(k => k.includes(q));
-    });
-
-    if (matches.length === 0) { hideSuggestions(); updateTempPreview(); return; }
-
-    suggestionsEl.innerHTML = '';
-    matches.forEach(item => {
-      const row = document.createElement('div');
-      row.className = 'item';
-      row.innerHTML = `<img src="${item.src}" alt="${escapeHtml(item.name)}"><div class="label">${escapeHtml(item.name)}</div>`;
-      row.onclick = () => {
-        // Fill text (but do not auto-add). Set the selected sample to this image, show temp preview.
-        //cardTextInput.value = item.name;
-        if (!cardTextInput.value.trim()) {
-        cardTextInput.value = item.name;
-        }
-        selectedSampleImage = item.src;
-        tempPreviewImage = item.src;
-        highlightSample(item.src);
-        updateTempPreview();
-        hideSuggestions();
-        cardTextInput.focus();
-      };
-      suggestionsEl.appendChild(row);
-    });
-    showSuggestions();
-  }
-
-  // --- Live preview for "card in progress" ---
-  function updateTempPreview() {
-    const text = document.getElementById('cardText').value.trim();
-    const color = document.getElementById('cardColor').value;
-    const preview = document.getElementById('tempPreview');
-    preview.innerHTML = '';
-
-    if (tempPreviewImage) {
-      const d = document.createElement('div');
-      d.className = 'card';
-      d.innerHTML = `
-        <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
-          <img src="${tempPreviewImage}" alt="preview" style="max-width:100%; max-height:100%;">
-        </div>
-        <div style="color:${color};"><strong>${escapeHtml(text)}</strong></div>
-      `;
-      preview.appendChild(d);
-    }
-  }
-
-  // adds a new card to the list (upload or chosen sample)
-  function addCard() {
-    const text = document.getElementById('cardText').value.trim();
-    const color = document.getElementById('cardColor').value;
-    const fileInput = document.getElementById('cardImage');
-
-    if (!text) { alert('Please enter card text.'); return; }
-
-    if (fileInput.files.length > 0) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        cards.push({ text, color, image: reader.result });
-        resetInputs(); renderPreview();
-      };
-      reader.readAsDataURL(fileInput.files[0]);
-    } else if (selectedSampleImage) {
-      cards.push({ text, color, image: selectedSampleImage });
-      resetInputs(); renderPreview();
-    } else {
-      alert('Please choose an image (upload or sample).');
-    }
-  }
-
-  function resetInputs(){
-    document.getElementById('cardText').value = '';
-    document.getElementById('cardImage').value = '';
-    selectedSampleImage = null;
-    tempPreviewImage = null;
-    document.getElementById('tempPreview').innerHTML = '';
-    highlightSample(null);
-    hideSuggestions();
-  }
-
-// --- Render added cards ---
   function renderPreview() {
-    const preview = document.getElementById('preview');
-    preview.innerHTML = '';
-    cards.forEach((c, i) => {
-      const d = document.createElement('div');
-      d.className = 'card';
-      d.innerHTML = `
-        <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
-          <img src="${c.image}" alt="img" style="max-width:100%; max-height:100%;">
-        </div>
-        <div style="color:${c.color};"><strong>${escapeHtml(c.text)}</strong></div>
-        <div style="margin-top:6px;"><button onclick="removeCard(${i})">Remove</button></div>
+    const preview = document.getElementById("preview");
+    preview.innerHTML = "";
+    cards.forEach((card, index) => {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.style.width = "55mm";   // your base card width
+      div.style.height = "60mm";  // your base card height
+      div.innerHTML = `
+        <div class="grab-handle">☰</div>
+        <div class="delete-btn">❌</div>
+        <img src="${card.image}" alt="">
+        <div class="card-text" style="color:${card.color}">${card.text}</div>
       `;
-      preview.appendChild(d);
-    });
-  }
 
-    function clearCards(){ 
-  if (confirm('Clear all cards?')) { 
-    cards.length = 0; 
-    renderPreview(); 
-  } 
-}
+      // Delete
+      div.querySelector(".delete-btn").onclick = () => {
+        cards.splice(index, 1);
+        renderPreview();
+      };
 
-
-  function removeCard(i){ cards.splice(i,1); renderPreview(); }
-   // --- Safe escape for HTML ---
-  function escapeHtml(s) { 
-    return s
-      ? s.replace(/[&<>"]/g, c => (
-          { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]
-        ))
-      : ''; 
-  }
-
-
-
-  // ---- image helpers for PDF: convert to dataURL if needed ----
-  function blobToDataURL(blob){
-    return new Promise((resolve,reject)=>{
-      const reader = new FileReader();
-      reader.onloadend = ()=>resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  }
-
-  async function ensureDataURL(src){
-    if (!src) throw new Error('No image src');
-    if (typeof src === 'string' && src.startsWith('data:')) return src;
-    // try fetch -> blob -> dataURL
-    try {
-      const r = await fetch(src, { mode: 'cors' });
-      if (!r.ok) throw new Error('fetch failed ' + r.status);
-      const blob = await r.blob();
-      return await blobToDataURL(blob);
-    } catch (err) {
-      // fallback: draw image to canvas (may fail for cross-origin)
-      return new Promise((resolve,reject)=>{
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          try {
-            const canvas = document.createElement('canvas');
-            canvas.width = img.naturalWidth;
-            canvas.height = img.naturalHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img,0,0);
-            resolve(canvas.toDataURL('image/png'));
-          } catch(e) { reject(e); }
-        };
-        img.onerror = (e) => reject(new Error('Could not load image for conversion: ' + src));
-        img.src = src;
+      // Edit (anywhere except grab/delete)
+      div.addEventListener("click", (e) => {
+        if (e.target.classList.contains("grab-handle") ||
+            e.target.classList.contains("delete-btn")) return;
+        openEditCard(index);
       });
-    }
-  }
 
-  function loadImageFromDataURL(dataURL){
-    return new Promise((resolve,reject)=>{
-      const img = new Image();
-      img.onload = ()=>resolve(img);
-      img.onerror = ()=>reject(new Error('image load error'));
-      img.src = dataURL;
+      preview.appendChild(div);
     });
   }
 
-  // ---- PDF generation (rounded cards, hole, stacking tabs) ----
-  async function generatePDF(){
-    if (cards.length === 0) { alert('No cards to generate.'); return; }
-
-    const doc = new jsPDF('p','mm','a4');
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-
-    const cardWidth = 55;        // mm
-    const baseHeight = 60;       // mm (first card)
-    const tabOffset = 7;         // mm increase per card (if stacking enabled) //was 5
-    const maxTabs = 9;           // resets after 9
-    const cornerRadius = 5;      // mm //was 4
-    const margin = 6;            // mm spacing between cards & edges
-    const holeOffset = 6;        // mm inward from top-left (user wanted ~2mm)//was 2
-    const holeRadius = 3;       // mm
-    const topSafe = 10;         // mm top safe area inside card
-    const imageAboveTextGap = 5; // mm gap between image bottom and text top
-    const textBottomMargin = 3;  // mm text offset from bottom (visible when stacked)
-
-    let x = margin, y = margin;
-    const useStacking = document.getElementById('stackingToggle').checked;
-
-    for (let i = 0; i < cards.length; i++){
-      const c = cards[i];
-      const cycleIndex = i % maxTabs;
-      const cardH = useStacking ? (baseHeight + cycleIndex * tabOffset) : baseHeight;
-
-      // wrap to next row if doesn't fit horizontally
-      if (x + cardWidth > pageW - margin) {
-        x = margin;
-        y += cardH + margin;
-      }
-
-      // new page if necessary
-      if (y + cardH > pageH - margin) {
-        doc.addPage();
-        x = margin;
-        y = margin;
-      }
-
-      // draw rounded rect border
-      doc.setDrawColor(0);
-      doc.setLineWidth(0.5);
-      // jsPDF roundedRect uses (x,y,w,h,rx,ry,style)
-      if (doc.roundedRect) {
-        doc.roundedRect(x, y, cardWidth, cardH, cornerRadius, cornerRadius, 'S');
-      } else {
-        doc.rect(x, y, cardWidth, cardH); // fallback
-      }
-
-      // pale grey hole guide moved in by ~2mm
-      doc.setDrawColor(180);
-      doc.circle(x + holeOffset, y + holeOffset, holeRadius, 'S');
-      doc.setDrawColor(0);
-
-      // calculate where the image should be drawn
-      const textY = y + cardH - textBottomMargin;
-      let imgBottomY = textY - imageAboveTextGap;
-      let imgH = Math.min(40, imgBottomY - (y + topSafe)); // prefer 40mm height but fit
-      imgH = Math.max(imgH, 2);
-      let imgW = cardWidth - 10; // leave small padding on sides
-
-      // draw image (convert local URLs -> dataURL if needed)
-      if (c.image) {
-        try {
-          const dataURL = await ensureDataURL(c.image);
-          const imgEl = await loadImageFromDataURL(dataURL);
-          const aspect = imgEl.naturalWidth / imgEl.naturalHeight;
-          let drawW = imgW, drawH = imgH;
-          if (drawW / drawH > aspect) {
-            drawW = drawH * aspect;
-          } else {
-            drawH = drawW / aspect;
-          }
-          const drawX = x + (cardWidth - drawW) / 2;
-          const drawY = imgBottomY - drawH;
-          let fmt = 'PNG';
-          if (dataURL.startsWith('data:image/jpeg')) fmt = 'JPEG';
-          else if (dataURL.startsWith('data:image/webp')) fmt = 'WEBP';
-          doc.addImage(dataURL, fmt, drawX, drawY, drawW, drawH);
-        } catch (err) {
-          console.warn('Image conversion/load failed for card', i, err);
-        }
-      }
-
-      // draw the text (centered)
-      doc.setFontSize(16); //was 14
-      doc.setTextColor(c.color || '#000000');
-      doc.text(String(c.text || ''), x + cardWidth / 2, textY, { align: 'center' });
-
-      // advance x
-      x += cardWidth + margin;
-    }
-
-    doc.save('pecs-cards.pdf');
+  function openEditCard(index) {
+    editIndex = index;
+    const card = cards[index];
+    document.getElementById("editText").value = card.text;
+    document.getElementById("editColor").value = card.color || "#000000";
+    document.getElementById("editImage").value = "";
+    document.getElementById("editModal").style.display = "block";
   }
-  </script>
-</body>
-</html>
 
+  function closeEditCard() {
+    document.getElementById("editModal").style.display = "none";
+    editIndex = null;
+  }
 
+  document.getElementById("saveEdit").onclick = () => {
+    if (editIndex !== null) {
+      const card = cards[editIndex];
+      card.text = document.getElementById("editText").value;
+      card.color = document.getElementById("editColor").value;
 
+      const fileInput = document.getElementById("editImage");
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          card.image = e.target.result;
+          renderPreview();
+          closeEditCard();
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        renderPreview();
+        closeEditCard();
+      }
+    }
+  };
 
+  document.getElementById("cancelEdit").onclick = closeEditCard;
 
+  // Enable drag and drop with handle only
+  new Sortable(document.getElementById("preview"), {
+    animation: 150,
+    handle: ".grab-handle",
+    onEnd(evt) {
+      const moved = cards.splice(evt.oldIndex, 1)[0];
+      cards.splice(evt.newIndex, 0, moved);
+      renderPreview();
+    }
+  });
 
-
-
-
-
-
-
-
-
-
-
-
+  // Example starter cards
+  cards = [
+    { text: "Stop", image: "https://via.placeholder.com/100", color: "#000000" },
+    { text: "Go", image: "https://via.placeholder.com/100", color: "#000000" }
+  ];
+  renderPreview();
+</script>
