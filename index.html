@@ -88,6 +88,19 @@
     <img src="images/stop.png" alt="Stop" onclick="useSampleImage(this)">
     <img src="images/sit.png" alt="Sit" onclick="useSampleImage(this)">
   </div>
+  #sampleImages img {
+  width: 80px;           /* Keeps them thumbnail size */
+  height: auto;          /* Preserve aspect ratio */
+  margin: 5px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  object-fit: contain;   /* Keeps odd-shaped images tidy */
+}
+#sampleImages img:hover {
+  border-color: #000;
+}
+
 
   <!-- jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -519,6 +532,7 @@ function saveEdit() {
 
 </body>
 </html>
+
 
 
 
