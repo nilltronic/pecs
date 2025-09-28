@@ -178,13 +178,19 @@
     updateTempPreview();
   }
 
-    // Enable drag & drop reordering
-new Sortable(document.getElementById('cardsContainer'), {
+    // Enable drag & drop reordering of added cards
+new Sortable(document.getElementById('preview'), {
   animation: 150,
   ghostClass: 'sortable-ghost',
   chosenClass: 'sortable-chosen',
   dragClass: 'sortable-drag',
+  onEnd: function (evt) {
+    // Update the cards[] array to reflect new order
+    const [moved] = cards.splice(evt.oldIndex, 1);
+    cards.splice(evt.newIndex, 0, moved);
+  }
 });
+
 
 
   // highlight a sample image in the gallery by src
@@ -488,6 +494,7 @@ new Sortable(document.getElementById('cardsContainer'), {
   </script>
 </body>
 </html>
+
 
 
 
