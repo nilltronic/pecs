@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>PECS Lanyard Card Creator — Full</title>
+
+  <!-- Sortable for drag & drop -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- =========================
+       CSS SECTION
+      
+       ========================= -->
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input, button { margin: 6px 0; padding: 8px; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+    /* Previews and cards */
+    #preview, #tempPreview { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    .card { border:1px solid #ccc; border-radius:6px; width:120px; padding:6px; text-align:center; background:#fafafa; box-sizing:border-box; }
+    .card img { max-width:100%; height:auto; display:block; margin:0 auto 6px; }
+
+    /* Sample images */
+    #sampleImages img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      background: white;
+      padding: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #cardColor { width: 40px; height: 40px; padding: 0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+
+    /* SortableJS visual helpers */
+    .sortable-ghost { opacity: 0.4; }
+    .sortable-chosen { border: 2px dashed #888; }
+    .sortable-drag { transform: rotate(3deg); }
+
+    /* Suggestions dropdown */
+    .inputWrap { position:relative; display:inline-block; }
+    #suggestions, #editSuggestions {
+      position:absolute;
+      top: calc(100% + 6px);
+      left:0;
+      width: 320px;
+      background:#fff;
+      border:1px solid #ccc;
+      border-radius:4px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.12);
+      max-height:220px;
+      overflow:auto;
+      z-index:2000;
+      display:none;
+    }
+    #suggestions .item, #editSuggestions .item { display:flex; align-items:center; gap:8px; padding:6px; cursor:pointer; }
+    #suggestions .item:hover, #editSuggestions .item:hover { background:#f3f3f3; }
+    #suggestions img, #editSuggestions img { width:36px; height:36px; object-fit:contain; border:1px solid #eee; border-radius:3px; }
+    #suggestions .label, #editSuggestions .label { font-size:14px; }
+
+    /* Modal styling */
+    .modal { display:none; position:fixed; z-index:3000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; }
+    .modal-content { background:#fff; padding:20px; border-radius:8px; width:340px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+    .modal-content h3 { margin-top:0; }
+    .small-thumb { width:48px; height:48px; object-fit:contain; border:1px solid #ccc; margin:2px; cursor:pointer; }
+  </style>
+</head>
+<body>
+
+  <!-- =========================
+       HTML SECTION (UI)
+       ========================= -->
+  <h1>PECS Lanyard Card Creator</h1>
+
+  <div class="row">
+    <div class="inputWrap">
+      <input type="text" id="cardText" placeholder="Enter card text" style="width:320px;">
+      <div id="suggestions" aria-hidden="true"></div>
+    </div>
+
+    <input type="button" value="Upload Image" onclick="document.getElementById('cardImage').click();" />
+    <input type="file" style="display:none;" id="cardImage" name="cardImage"/>
+
+    <button onclick="addCard()">Add Card</button>
+    <button onclick="generatePDF()">Generate PDF</button>
+    <button onclick="clearCards()">Clear</button>
+
+    <label for="cardColor">Text color:</label>
+    <input type="color" id="cardColor" value="#000000">
+
+    <label>
+      <input type="checkbox" id="stackingToggle" checked>
+      Use stacking tabs
+    </label>
+  </div>
+
+  <h3>Card in Progress</h3>
+  <div id="tempPreview"></div>
+
+  <h3>Added Cards</h3>
+  <div id="preview"></div>
+
+  <h3>Sample Images</h3>
+  <div id="sampleImages">
+    <!-- KEEP your images/ references here exactly as you have them locally -->
+    <img src="images/yes.png" alt="Yes" onclick="useSampleImage(this)" data-name="Yes">
+    <img src="images/no.png" alt="No" onclick="useSampleImage(this)" data-name="No">
+    <img src="images/red.png" alt="Red" onclick="useSampleImage(this)" data-name="Red">
+    <img src="images/orange.png" alt="Orange" onclick="useSampleImage(this)" data-name="Orange">
+    <img src="images/yellow.png" alt="Yellow" onclick="useSampleImage(this)" data-name="Yellow">
+    <img src="images/green.png" alt="Green" onclick="useSampleImage(this)" data-name="Green">
+    <img src="images/blue.png" alt="Blue" onclick="useSampleImage(this)" data-name="Blue">
+    <img src="images/purple.png" alt="Purple" onclick="useSampleImage(this)" data-name="Purple">
+    <img src="images/toilet.png" alt="Toilet" onclick="useSampleImage(this)" data-name="Toilet">
+    <img src="images/drink.png" alt="Drink" onclick="useSampleImage(this)" data-name="Drink">
+    <img src="images/snack.png" alt="Snack" onclick="useSampleImage(this)" data-name="Snack">
+    <img src="images/wash.png" alt="Wash" onclick="useSampleImage(this)" data-name="Wash">
+    <img src="images/home.png" alt="Home" onclick="useSampleImage(this)" data-name="Home">
+    <img src="images/tidy.png" alt="Tidy" onclick="useSampleImage(this)" data-name="Tidy">
+    <img src="images/line.png" alt="Line" onclick="useSampleImage(this)" data-name="Line">
+    <img src="images/stop.png" alt="Stop" onclick="useSampleImage(this)" data-name="Stop">
+    <img src="images/sit.png" alt="Sit" onclick="useSampleImage(this)" data-name="Sit">
+    <img src="images/chair.png" alt="Chair" onclick="useSampleImage(this)" data-name="Chair">
+    <img src="images/quiet.png" alt="Quiet" onclick="useSampleImage(this)" data-name="Quiet">
+    <img src="images/hitting.png" alt="Hitting" onclick="useSampleImage(this)" data-name="Hitting">
+    <img src="images/biting.png" alt="Biting" onclick="useSampleImage(this)" data-name="Biting">
+    <img src="images/trampoline.png" alt="Trampoline" onclick="useSampleImage(this)" data-name="Trampoline">
+    <img src="images/swing.png" alt="Swing" onclick="useSampleImage(this)" data-name="Swing">
+    <img src="images/outside.png" alt="Outside" onclick="useSampleImage(this)" data-name="Outside">
+    <img src="images/sensory.png" alt="Sensory" onclick="useSampleImage(this)" data-name="Sensory">
+    <img src="images/pick.png" alt="Pick" onclick="useSampleImage(this)" data-name="Pick">
+    <img src="images/pe.png" alt="PE" onclick="useSampleImage(this)" data-name="PE">
+    <img src="images/swimming.png" alt="Swimming" onclick="useSampleImage(this)" data-name="Swimming">
+    <img src="images/shoes.png" alt="Shoes" onclick="useSampleImage(this)" data-name="Shoes">
+    <img src="images/pirate.png" alt="Pirate" onclick="useSampleImage(this)" data-name="Pirate">
+  </div>
+
+  <!-- Edit modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3>Edit Card</h3>
+      <input type="text" id="editText" placeholder="Card text" style="width:100%;">
+      <div id="editSuggestions" style="display:none;"></div>
+
+      <label>Text color:</label>
+      <input type="color" id="editColor" value="#000000" style="width:48px;"><br>
+
+      <input type="button" value="Choose Image" onclick="document.getElementById('editImage').click();" />
+      <input type="file" style="display:none;" id="editImage" name="editImage"/>
+
+      <div id="editSampleImages" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; max-height:120px; overflow:auto;"></div>
+
+      <div style="margin-top:12px; text-align:right;">
+        <button onclick="saveEdit()">Save</button>
+        <button onclick="closeEditModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================
+       JAVASCRIPT SECTION
+       (all logic: suggestions, edit modal, PDF, etc.)
+       ========================= -->
+  <script>
+  // ---- set up basic state ----
+  const cards = []; // array of { text, color, image (dataURL or relative URL) }
+  let selectedSampleImage = null; // chosen sample for add-mode (not yet added)
+  let tempPreviewImage = null;    // shown in "Card in Progress"
+  let editingIndex = null;        // index being edited in modal
+
+  // Build a symbolLibrary for suggestions (name, src, keywords)
+  // You can edit keywords to improve matching.
+  const symbolLibrary = [
+    { name: "Yes", src: "images/yes.png", keywords: ["yes","affirm","ok","correct"] },
+    { name: "No", src: "images/no.png", keywords: ["no","not","never"] },
+    { name: "Red", src: "images/red.png", keywords: ["red","colour red","color red"] },
+    { name: "Orange", src: "images/orange.png", keywords: ["orange"] },
+    { name: "Yellow", src: "images/yellow.png", keywords: ["yellow"] },
+    { name: "Green", src: "images/green.png", keywords: ["green"] },
+    { name: "Blue", src: "images/blue.png", keywords: ["blue"] },
+    { name: "Purple", src: "images/purple.png", keywords: ["purple"] },
+    { name: "Drink", src: "images/drink.png", keywords: ["drink","cup","water","drink water"] },
+    { name: "Snack", src: "images/snack.png", keywords: ["snack","food"] },
+    { name: "Toilet", src: "images/toilet.png", keywords: ["toilet","loo","bathroom"] },
+    { name: "Wash", src: "images/wash.png", keywords: ["wash","wash hands","sink"] },
+    { name: "Home", src: "images/home.png", keywords: ["home","house"] },
+    { name: "Tidy", src: "images/tidy.png", keywords: ["tidy","clean","clean up"] },
+    { name: "Line", src: "images/line.png", keywords: ["line","queue","line up"] },
+    { name: "Stop", src: "images/stop.png", keywords: ["stop","don't","wait"] },
+    { name: "Sit", src: "images/sit.png", keywords: ["sit","sit down"] },
+    { name: "Chair", src: "images/chair.png", keywords: ["chair","sit on chair"] },
+    { name: "Quiet", src: "images/quiet.png", keywords: ["quiet","shh","silence"] },
+    { name: "Hitting", src: "images/hitting.png", keywords: ["hitting","no hitting"] },
+    { name: "Biting", src: "images/biting.png", keywords: ["biting","no biting"] },
+    { name: "Trampoline", src: "images/trampoline.png", keywords: ["trampoline","jump"] },
+    { name: "Swing", src: "images/swing.png", keywords: ["swing","swinging"] },
+    { name: "Outside", src: "images/outside.png", keywords: ["outside","play out"] },
+    { name: "Sensory", src: "images/sensory.png", keywords: ["sensory","sensory room"] },
+    { name: "Pick", src: "images/pick.png", keywords: ["pick","pick up"] },
+    { name: "PE", src: "images/pe.png", keywords: ["pe","p.e.","sport","sports","physical education"] },
+    { name: "Swimming", src: "images/swimming.png", keywords: ["swimming","pool"] },
+    { name: "Shoes", src: "images/shoes.png", keywords: ["shoes","trainers"] },
+    { name: "Pirate", src: "images/pirate.png", keywords: ["pirate","ship"] }
+  ];
+
+  // UI elements
+  const cardTextInput = document.getElementById('cardText');
+  const suggestionsEl = document.getElementById('suggestions');
+  const tempPreviewEl = document.getElementById('tempPreview');
+  const previewEl = document.getElementById('preview');
+
+  // Edit modal elements
+  const editModal = document.getElementById('editModal');
+  const editText = document.getElementById('editText');
+  const editColor = document.getElementById('editColor');
+  const editImage = document.getElementById('editImage');
+  const editSampleImagesEl = document.getElementById('editSampleImages');
+  const editSuggestionsEl = document.getElementById('editSuggestions');
+
+  // wire events
+  cardTextInput.addEventListener('input', onTextInput);
+  cardTextInput.addEventListener('focus', onTextInput);
+  document.addEventListener('click', (e) => {
+    if (!suggestionsEl.contains(e.target) && e.target !== cardTextInput) hideSuggestions();
+  });
+
+  // When user picks file for add-mode preview
+  document.getElementById('cardImage').addEventListener('change', function() {
+    const f = this.files && this.files[0];
+    if (!f) return;
+    selectedSampleImage = null;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      tempPreviewImage = reader.result;
+      highlightSample(null);
+      updateTempPreview();
+    };
+    reader.readAsDataURL(f);
+  });
+
+  // --- SUGGESTIONS (Add-mode) ---
+  function onTextInput() {
+    const q = (cardTextInput.value || '').toLowerCase().trim();
+    if (!q) { hideSuggestions(); updateTempPreview(); return; }
+
+    // find matches in symbolLibrary (name or keywords includes query)
+    const matches = symbolLibrary.filter(item => {
+      if (item.name && item.name.toLowerCase().includes(q)) return true;
+      if (item.keywords && item.keywords.some(k => k.toLowerCase().includes(q))) return true;
+      return false;
+    });
+
+    if (matches.length === 0) { hideSuggestions(); updateTempPreview(); return; }
+
+    suggestionsEl.innerHTML = '';
+    matches.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `<img src="${item.src}" alt="${escapeHtml(item.name)}"><div class="label">${escapeHtml(item.name)}</div>`;
+      row.onclick = (ev) => {
+        // Important: do NOT overwrite user's typed text unless the input is empty
+        // Always set the sample image selection and show preview
+        selectedSampleImage = item.src;
+        tempPreviewImage = item.src;
+        highlightSample(item.src);
+        updateTempPreview();
+        hideSuggestions();
+
+        // Only fill the text with suggestion if input is empty
+        if (!cardTextInput.value.trim()) {
+          cardTextInput.value = item.name;
+        }
+        cardTextInput.focus();
+      };
+      suggestionsEl.appendChild(row);
+    });
+    showSuggestions();
+  }
+
+  function showSuggestions(){ suggestionsEl.style.display = 'block'; }
+  function hideSuggestions(){ suggestionsEl.style.display = 'none'; suggestionsEl.innerHTML = ''; }
+
+  // highlight sample in gallery
+  function highlightSample(src) {
+    document.querySelectorAll('#sampleImages img').forEach(img=>{
+      img.style.borderColor = (img.src === src) ? '#007bff' : '#ccc';
+    });
+  }
+
+  // Click on sample image (gallery) in add-mode
+  function useSampleImage(imgEl) {
+    selectedSampleImage = imgEl.src;
+    tempPreviewImage = imgEl.src;
+    highlightSample(imgEl.src);
+    updateTempPreview();
+    // do not auto-add — user can edit text then click Add Card
+  }
+  window.useSampleImage = useSampleImage; // expose for inline onclick
+
+  // Update "Card in Progress"
+  function updateTempPreview(){
+    const text = document.getElementById('cardText').value.trim();
+    const color = document.getElementById('cardColor').value;
+    tempPreviewEl.innerHTML = '';
+    if (tempPreviewImage || text) {
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `
+        <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
+          ${ tempPreviewImage ? `<img src="${tempPreviewImage}" alt="preview" style="max-width:100%; max-height:100%;">` : '' }
+        </div>
+        <div style="color:${color};"><strong>${escapeHtml(text)}</strong></div>
+      `;
+      tempPreviewEl.appendChild(d);
+    }
+  }
+
+  // Add Card (uploads or selected sample)
+  function addCard() {
+    const text = document.getElementById('cardText').value.trim();
+    const color = document.getElementById('cardColor').value;
+    const fileInput = document.getElementById('cardImage');
+
+    if (!text) { alert('Please enter card text.'); return; }
+
+    if (fileInput.files.length > 0) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        cards.push({ text, color, image: reader.result });
+        resetInputs(); renderPreview();
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    } else if (selectedSampleImage) {
+      cards.push({ text, color, image: selectedSampleImage });
+      resetInputs(); renderPreview();
+    } else {
+      alert('Please choose an image (upload or sample).');
+    }
+  }
+
+  function resetInputs(){
+    document.getElementById('cardText').value = '';
+    document.getElementById('cardImage').value = '';
+    selectedSampleImage = null;
+    tempPreviewImage = null;
+    tempPreviewEl.innerHTML = '';
+    highlightSample(null);
+    hideSuggestions();
+  }
+
+  // Render list of added cards
+  function renderPreview(){
+    previewEl.innerHTML = '';
+    cards.forEach((c,i) => {
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `
+        <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
+          <img src="${c.image}" alt="img" style="max-width:100%; max-height:100%;">
+        </div>
+        <div style="color:${c.color};"><strong>${escapeHtml(c.text)}</strong></div>
+        <div style="margin-top:6px;">
+          <button onclick="openEdit(${i})">Edit</button>
+          <button onclick="removeCard(${i})">Remove</button>
+        </div>
+      `;
+      previewEl.appendChild(d);
+    });
+  }
+
+  // Remove card
+  function removeCard(i){ cards.splice(i,1); renderPreview(); }
+
+  // Clear all
+  function clearCards(){ if (confirm('Clear all cards?')){ cards.length = 0; renderPreview(); } }
+
+  // Setup Sortable on preview and keep cards[] in sync
+  new Sortable(previewEl, {
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
+    onEnd: function(evt) {
+      const [moved] = cards.splice(evt.oldIndex, 1);
+      cards.splice(evt.newIndex, 0, moved);
+      renderPreview(); // re-render to ensure buttons have correct indexes
+    }
+  });
+
+  // ---- EDIT MODAL / SUGGESTIONS FOR EDIT ----
+  // Populate edit modal sample thumbnails (clone sampleImages)
+  (function populateEditSampleGallery(){
+    const sampleImgs = document.querySelectorAll('#sampleImages img');
+    sampleImgs.forEach(img => {
+      const thumb = img.cloneNode();
+      thumb.className = 'small-thumb';
+      thumb.onclick = () => { editImage.dataset.sample = img.src; highlightEditSample(img.src); };
+      editSampleImagesEl.appendChild(thumb);
+    });
+  })();
+
+  function highlightEditSample(src){
+    editSampleImagesEl.querySelectorAll('img').forEach(el => {
+      el.style.borderColor = (el.src === src) ? '#007bff' : '#ccc';
+    });
+  }
+
+  // Show suggestions while typing in edit modal
+  editText.addEventListener('input', onEditTextInput);
+  editText.addEventListener('focus', onEditTextInput);
+  document.addEventListener('click', (e) => {
+    if (!editSuggestionsEl.contains(e.target) && e.target !== editText) hideEditSuggestions();
+  });
+
+  function onEditTextInput(){
+    const q = (editText.value || '').toLowerCase().trim();
+    if (!q) { hideEditSuggestions(); return; }
+
+    const matches = symbolLibrary.filter(item => {
+      if (item.name && item.name.toLowerCase().includes(q)) return true;
+      if (item.keywords && item.keywords.some(k => k.toLowerCase().includes(q))) return true;
+      return false;
+    });
+
+    if (matches.length === 0) { hideEditSuggestions(); return; }
+
+    editSuggestionsEl.innerHTML = '';
+    matches.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `<img src="${item.src}" alt="${escapeHtml(item.name)}"><div class="label">${escapeHtml(item.name)}</div>`;
+      row.onclick = () => {
+        // set selected sample image for edit modal, but do not overwrite the edit text unless empty
+        editImage.dataset.sample = item.src;
+        highlightEditSample(item.src);
+        hideEditSuggestions();
+        // Only set text if user hasn't typed anything
+        if (!editText.value.trim()) editText.value = item.name;
+        updateEditModalPreview();
+      };
+      editSuggestionsEl.appendChild(row);
+    });
+    editSuggestionsEl.style.display = 'block';
+  }
+
+  function hideEditSuggestions(){ editSuggestionsEl.style.display = 'none'; editSuggestionsEl.innerHTML = ''; }
+
+  // Open the edit modal for card i
+  function openEdit(i) {
+    editingIndex = i;
+    const c = cards[i];
+    editText.value = c.text;
+    editColor.value = c.color || '#000000';
+    editImage.value = '';
+    editImage.dataset.sample = c.image && !c.image.startsWith('data:') ? c.image : ''; // if image is relative path set as sample
+    highlightEditSample(editImage.dataset.sample || '');
+    updateEditModalPreview();
+    editModal.style.display = 'flex';
+  }
+
+  // When user chooses file in edit modal, clear sample selection and preview image becomes uploaded
+  editImage.addEventListener('change', () => {
+    if (editImage.files.length > 0) {
+      editImage.dataset.sample = '';
+      highlightEditSample(null);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        // preview will show this via updateEditModalPreview
+        editImage._uploadedData = e.target.result;
+        updateEditModalPreview();
+      };
+      reader.readAsDataURL(editImage.files[0]);
+    }
+  });
+
+  function updateEditModalPreview(){
+    const text = editText.value.trim();
+    const color = editColor.value;
+    let imgSrc = editImage._uploadedData || editImage.dataset.sample || '';
+    // if editingIndex exists and imgSrc empty, fall back to card image
+    if (!imgSrc && editingIndex !== null && cards[editingIndex]) imgSrc = cards[editingIndex].image || '';
+    // build a temp preview element
+    const previewBox = document.createElement('div');
+    previewBox.className = 'card';
+    previewBox.innerHTML = `
+      <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
+        ${ imgSrc ? `<img src="${imgSrc}" style="max-width:100%; max-height:100%;">` : '' }
+      </div>
+      <div style="color:${color};"><strong>${escapeHtml(text)}</strong></div>
+    `;
+    // attach preview inside modal (replace previous)
+    const existing = document.getElementById('modalPreview');
+    if (existing) existing.remove();
+    previewBox.id = 'modalPreview';
+    editModal.querySelector('.modal-content').appendChild(previewBox);
+  }
+
+  function saveEdit(){
+    if (editingIndex === null) return;
+    const text = editText.value.trim();
+    const color = editColor.value;
+    const c = cards[editingIndex];
+
+    if (editImage.files.length > 0 && editImage._uploadedData) {
+      c.image = editImage._uploadedData;
+    } else if (editImage.dataset.sample) {
+      c.image = editImage.dataset.sample;
+    } // else keep existing image
+
+    c.text = text;
+    c.color = color;
+    renderPreview();
+    closeEditModal();
+  }
+
+  function closeEditModal(){
+    editModal.style.display = 'none';
+    editingIndex = null;
+    editImage._uploadedData = null;
+    const preview = document.getElementById('modalPreview');
+    if (preview) preview.remove();
+  }
+
+  // Hide modal if clicking outside content
+  editModal.addEventListener('click', (e) => {
+    if (e.target === editModal) closeEditModal();
+  });
+
+  // Escape helper safe for HTML and retains apostrophes
+  function escapeHtml(s) {
+    if (!s && s !== '') return '';
+    return String(s).replace(/[&<>"']/g, (c) => {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  // =========================
+  // Image helpers used by PDF generator
+  // =========================
+  function blobToDataURL(blob){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function ensureDataURL(src) {
+    if (!src) throw new Error('No image src');
+    if (typeof src === 'string' && src.startsWith('data:')) return src;
+
+    // Try fetch -> blob -> dataURL (works if server serves images with CORS or same-origin)
+    try {
+      const res = await fetch(src, { mode: 'cors' });
+      if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+      const blob = await res.blob();
+      return await blobToDataURL(blob);
+    } catch (err) {
+      // Fallback: draw to canvas (works for same-origin)
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+          } catch (e) {
+            reject(e);
+          }
+        };
+        img.onerror = () => reject(new Error('Could not load image for conversion: ' + src));
+        img.src = src;
+      });
+    }
+  }
+
+  function loadImageFromDataURL(dataURL) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Image load error'));
+      img.src = dataURL;
+    });
+  }
+
+  // =========================
+  // PDF generation (kept close to your working logic)
+  // =========================
+  async function generatePDF() {
+    if (cards.length === 0) { alert('No cards to generate.'); return; }
+    const doc = new jspdf.jsPDF('p','mm','a4'); // note: using jspdf namespace
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+
+    const cardWidth = 55;
+    const baseHeight = 60;
+    const tabOffset = 7;
+    const maxTabs = 9;
+    const cornerRadius = 5;
+    const margin = 6;
+    const holeOffset = 6;
+    const holeRadius = 3;
+    const topSafe = 10;
+    const imageAboveTextGap = 5;
+    const textBottomMargin = 3;
+
+    let x = margin, y = margin;
+    const useStacking = document.getElementById('stackingToggle').checked;
+
+    for (let i = 0; i < cards.length; i++) {
+      const c = cards[i];
+      const cycleIndex = i % maxTabs;
+      const cardH = useStacking ? (baseHeight + cycleIndex * tabOffset) : baseHeight;
+
+      // wrap row
+      if (x + cardWidth > pageW - margin) {
+        x = margin;
+        y += cardH + margin;
+      }
+
+      // new page
+      if (y + cardH > pageH - margin) {
+        doc.addPage();
+        x = margin;
+        y = margin;
+      }
+
+      // border
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.5);
+      if (doc.roundedRect) {
+        doc.roundedRect(x, y, cardWidth, cardH, cornerRadius, cornerRadius, 'S');
+      } else {
+        doc.rect(x, y, cardWidth, cardH);
+      }
+
+      // hole guide
+      doc.setDrawColor(180);
+      doc.circle(x + holeOffset, y + holeOffset, holeRadius, 'S');
+      doc.setDrawColor(0);
+
+      // layout image area
+      const textY = y + cardH - textBottomMargin;
+      let imgBottomY = textY - imageAboveTextGap;
+      let imgH = Math.min(40, imgBottomY - (y + topSafe));
+      imgH = Math.max(imgH, 2);
+      let imgW = cardWidth - 10;
+
+      if (c.image) {
+        try {
+          const dataURL = await ensureDataURL(c.image);
+          const imgEl = await loadImageFromDataURL(dataURL);
+          const aspect = imgEl.naturalWidth / imgEl.naturalHeight;
+          let drawW = imgW, drawH = imgH;
+          if (drawW / drawH > aspect) drawW = drawH * aspect;
+          else drawH = drawW / aspect;
+          const drawX = x + (cardWidth - drawW) / 2;
+          const drawY = imgBottomY - drawH;
+          let fmt = 'PNG';
+          if (dataURL.startsWith('data:image/jpeg')) fmt = 'JPEG';
+          else if (dataURL.startsWith('data:image/webp')) fmt = 'WEBP';
+          doc.addImage(dataURL, fmt, drawX, drawY, drawW, drawH);
+        } catch (err) {
+          console.warn('Image conversion/load failed for card', i, err);
+        }
+      }
+
+      // text
+      doc.setFontSize(16);
+      doc.setTextColor(c.color || '#000000');
+      doc.text(String(c.text || ''), x + cardWidth / 2, textY, { align: 'center' });
+
+      x += cardWidth + margin;
+    }
+
+    doc.save('pecs-cards.pdf');
+  }
+
+  // initial render (nothing)
+  renderPreview();
+  </script>
+  <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="nilltronic" data-color="#FFDD00" data-emoji=""  data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+
+</body>
+</html>
+
+
+
+
+
+
