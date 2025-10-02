@@ -138,6 +138,7 @@
     <img src="images/swimming.png" alt="Swimming" onclick="useSampleImage(this)" data-name="Swimming">
     <img src="images/shoes.png" alt="Shoes" onclick="useSampleImage(this)" data-name="Shoes">
     <img src="images/pirate.png" alt="Pirate" onclick="useSampleImage(this)" data-name="Pirate">
+    <img src="images/classroom.png" alt="Classroom" onclick="useSampleImage(this)" data-name="Classroom">
   </div>
 
   <!-- Edit modal -->
@@ -206,6 +207,7 @@
     { name: "Swimming", src: "images/swimming.png", keywords: ["swimming","pool"] },
     { name: "Shoes", src: "images/shoes.png", keywords: ["shoes","trainers"] },
     { name: "Pirate", src: "images/pirate.png", keywords: ["pirate","ship"] }
+    { name: "Classroom", src: "images/classroom.png", keywords: ["classroom","class"] }
   ];
 
   // UI elements
