@@ -143,6 +143,7 @@
     <img src="images/assembly.png" alt="Assembly" onclick="useSampleImage(this)" data-name="Assembly">
     <img src="images/spitting.png" alt="Spitting" onclick="useSampleImage(this)" data-name="Spitting">
     <img src="images/scratching.png" alt="Spitting" onclick="useSampleImage(this)" data-name="Scratching">
+    <img src="images/circle.png" alt="Circle" onclick="useSampleImage(this)" data-name="Circle">
   </div>
 
   <!-- Edit modal -->
@@ -215,7 +216,8 @@
     { name: "Cafeteria", src: "images/cafeteria.png", keywords: ["cafeteria","dinner","lunch"] },
     { name: "Assembly", src: "images/assembly.png", keywords: ["assembly"] },
     { name: "Spitting", src: "images/spitting.png", keywords: ["spitting","no spitting"] },
-    { name: "Scratching", src: "images/scratching.png", keywords: ["scratching","no scratching"] }
+    { name: "Scratching", src: "images/scratching.png", keywords: ["scratching","no scratching"] },
+    { name: "Circle", src: "images/circle.png", keywords: ["circle","circle time"] }
   ];
 
   // UI elements
