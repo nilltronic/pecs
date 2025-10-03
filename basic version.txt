@@ -142,6 +142,7 @@
     <img src="images/cafeteria.png" alt="Cafeteria" onclick="useSampleImage(this)" data-name="Cafeteria">
     <img src="images/assembly.png" alt="Assembly" onclick="useSampleImage(this)" data-name="Assembly">
     <img src="images/spitting.png" alt="Spitting" onclick="useSampleImage(this)" data-name="Spitting">
+    <img src="images/scratching.png" alt="Spitting" onclick="useSampleImage(this)" data-name="Scratching">
   </div>
 
   <!-- Edit modal -->
@@ -213,7 +214,8 @@
     { name: "Classroom", src: "images/classroom.png", keywords: ["classroom","class"] },
     { name: "Cafeteria", src: "images/cafeteria.png", keywords: ["cafeteria","dinner","lunch"] },
     { name: "Assembly", src: "images/assembly.png", keywords: ["assembly"] },
-    { name: "Spitting", src: "images/spitting.png", keywords: ["spitting","no spitting"] }
+    { name: "Spitting", src: "images/spitting.png", keywords: ["spitting","no spitting"] },
+    { name: "Scratching", src: "images/scratching.png", keywords: ["scratching","no scratching"] }
   ];
 
   // UI elements
