@@ -146,6 +146,7 @@
     <img src="images/circle.png" alt="Circle" onclick="useSampleImage(this)" data-name="Circle">
     <img src="images/bucket.png" alt="Bucket" onclick="useSampleImage(this)" data-name="Bucket">
     <img src="images/listen.png" alt="Listen" onclick="useSampleImage(this)" data-name="Listen">
+    <img src="images/eat.png" alt="Eat" onclick="useSampleImage(this)" data-name="Eat">
   </div>
 
   <!-- Edit modal -->
@@ -193,7 +194,7 @@
     { name: "Blue", src: "images/blue.png", keywords: ["blue"] },
     { name: "Purple", src: "images/purple.png", keywords: ["purple"] },
     { name: "Drink", src: "images/drink.png", keywords: ["drink","cup","water","drink water"] },
-    { name: "Snack", src: "images/snack.png", keywords: ["snack","food"] },
+    { name: "Snack", src: "images/snack.png", keywords: ["snack","food","eat"] },
     { name: "Toilet", src: "images/toilet.png", keywords: ["toilet","loo","bathroom"] },
     { name: "Wash", src: "images/wash.png", keywords: ["wash","wash hands","sink"] },
     { name: "Home", src: "images/home.png", keywords: ["home","house"] },
@@ -221,7 +222,8 @@
     { name: "Scratching", src: "images/scratching.png", keywords: ["scratching","no scratching"] },
     { name: "Circle", src: "images/circle.png", keywords: ["circle","circle time"] },
     { name: "Bucket", src: "images/bucket.png", keywords: ["bucket","bucket time"] },
-    { name: "Listen", src: "images/listen.png", keywords: ["listen"] }
+    { name: "Listen", src: "images/listen.png", keywords: ["listen"] },
+    { name: "Eat", src: "images/eat.png", keywords: ["snack","food","eat"] },
   ];
 
   // UI elements
