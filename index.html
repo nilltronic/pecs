@@ -6,7 +6,7 @@
 
   <!-- external libs --> 
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.js"></script>
 
   <!-- =========================
        CSS SECTION (visuals)
@@ -112,13 +112,12 @@
     </label>
 
     <label style="margin-left: 10px;">
-  Hole position:
-  <select id="holePosition">
-    <option value="corner" selected>Corner</option>
-    <option value="center">Center</option>
-  </select>
-</label>
-
+      Hole position:
+      <select id="holePosition">
+        <option value="corner" selected>Corner</option>
+        <option value="center">Center</option>
+      </select>
+    </label>
   </div>
 
   <h3>Card in Progress</h3>
@@ -183,7 +182,6 @@
   // -------------------------
   // Symbol library (with categories)
   // Each entry: { name, src, keywords, category }
-  // Keep src exactly the same as your local images/
   // -------------------------
   const symbolLibrary = [
     // Colors
@@ -200,7 +198,6 @@
     { name:"Eat", src:"images/eat.png", keywords:["snack","food","eat"], category:"Needs" },
     { name:"Wash", src:"images/wash.png", keywords:["wash","wash hands","sink"], category:"Needs" },
     { name:"Food", src:"images/food.png", keywords:["food","eat","snack"], category:"Needs" },
-    
 
     // Actions
     { name:"Yes", src:"images/yes.png", keywords:["yes","affirm","ok"], category:"Actions" },
@@ -217,9 +214,8 @@
     { name:"Sensory", src:"images/sensory.png", keywords:["sensory","sensory room"], category:"Places" },
     { name:"Home", src:"images/home.png", keywords:["home","house"], category:"Places" },
     { name:"Pirate", src:"images/pirate.png", keywords:["pirate","ship"], category:"Places" },
-    { name:"Classroom", src:"images/classroom.png", keywords:["classroom","class",], category:"Places" },
+    { name:"Classroom", src:"images/classroom.png", keywords:["classroom","class"], category:"Places" },
     { name:"Cafeteria", src:"images/cafeteria.png", keywords:["cafeteria","lunch","dinner"], category:"Places" },
-
 
     // Activities
     { name:"PE", src:"images/pe.png", keywords:["pe","sport","sports"], category:"Activities" },
@@ -262,7 +258,6 @@
   // Build categories UI from library
   // -------------------------
   function buildCategoryGallery() {
-    // compute unique categories in order
     const cats = [...new Set(symbolLibrary.map(s => s.category || 'Uncategorized'))];
     sampleImagesContainer.innerHTML = '';
     cats.forEach(cat => {
@@ -277,11 +272,9 @@
       `;
       sampleImagesContainer.appendChild(header);
 
-      // container for thumbnails
       const row = document.createElement('div');
       row.className = 'sample-row';
       row.dataset.category = cat;
-      // append images from library for this category
       symbolLibrary.filter(s => (s.category||'Uncategorized') === cat).forEach(s => {
         const img = document.createElement('img');
         img.src = s.src;
@@ -300,9 +293,8 @@
       });
       sampleImagesContainer.appendChild(row);
 
-      // wire header buttons
       header.querySelectorAll('button').forEach(btn => {
-        btn.addEventListener('click', (ev) => {
+        btn.addEventListener('click', () => {
           const action = btn.dataset.action;
           const c = btn.dataset.cat;
           if (action === 'toggle') {
@@ -314,11 +306,9 @@
               btn.textContent = 'Expand';
             }
           } else if (action === 'showOnly') {
-            // hide all rows except this category
             sampleImagesContainer.querySelectorAll('.sample-row').forEach(r => {
               r.style.display = (r.dataset.category === c) ? 'flex' : 'none';
             });
-            // update toggle text on headers
             sampleImagesContainer.querySelectorAll('.categoryHeader button[data-action="toggle"]').forEach(b => {
               const catb = b.dataset.cat;
               const rowb = sampleImagesContainer.querySelector(`.sample-row[data-category="${catb}"]`);
@@ -329,7 +319,6 @@
       });
     });
 
-    // final control to reset "show only"
     const reset = document.createElement('div');
     reset.style.marginTop = '8px';
     reset.innerHTML = `<button onclick="resetCategoryView()">Show all categories</button> <span class="muted">(or use category buttons above)</span>`;
@@ -341,7 +330,6 @@
     sampleImagesContainer.querySelectorAll('.categoryHeader button[data-action="toggle"]').forEach(b => b.textContent = 'Collapse');
   }
 
-  // build also edit modal thumbnails
   function populateEditSampleGallery(){
     editSampleImagesEl.innerHTML = '';
     symbolLibrary.forEach(s => {
@@ -387,7 +375,6 @@
       row.className = 'item';
       row.innerHTML = `<img src="${item.src}" alt="${escapeHtml(item.name)}"><div class="label">${escapeHtml(item.name)} <div style="font-size:12px;color:#666">${escapeHtml(item.category||'')}</div></div>`;
       row.onclick = () => {
-        // Don't overwrite user text unless empty. Always set sample image selection.
         selectedSampleImage = item.src;
         tempPreviewImage = item.src;
         highlightSample(item.src);
@@ -400,6 +387,7 @@
     });
     showSuggestions();
   }
+  
   function showSuggestions(){ suggestionsEl.style.display = 'block'; }
   function hideSuggestions(){ suggestionsEl.style.display = 'none'; suggestionsEl.innerHTML = ''; }
 
@@ -409,7 +397,6 @@
     });
   }
 
-  // When user picks a file for add-mode
   document.getElementById('cardImage').addEventListener('change', function() {
     const f = this.files && this.files[0];
     if (!f) return;
@@ -423,7 +410,6 @@
     reader.readAsDataURL(f);
   });
 
-  // Update "Card in Progress"
   function updateTempPreview(){
     const text = document.getElementById('cardText').value.trim();
     const color = document.getElementById('cardColor').value;
@@ -498,7 +484,6 @@
   function removeCard(i){ cards.splice(i,1); renderPreview(); }
   function clearCards(){ if (confirm('Clear all cards?')){ cards.length = 0; renderPreview(); } }
 
-  // keep cards[] order when drag/drop
   new Sortable(previewEl, {
     animation: 150,
     ghostClass: 'sortable-ghost',
@@ -512,9 +497,9 @@
   });
 
   // -------------------------
-  // Edit modal logic + suggestions inside edit modal
+  // Edit modal logic
   // -------------------------
-  populateEditSampleGallery(); // fill edit modal with small thumbs (function defined below)
+  populateEditSampleGallery();
   editText.addEventListener('input', onEditTextInput);
   editText.addEventListener('focus', onEditTextInput);
   document.addEventListener('click', (e) => {
@@ -543,7 +528,6 @@
         editImage._uploadedData = null;
         highlightEditSample(item.src);
         hideEditSuggestions();
-        // don't overwrite user's typed text unless empty
         if (!editText.value.trim()) editText.value = item.name;
         updateEditModalPreview();
       };
@@ -551,6 +535,7 @@
     });
     editSuggestionsEl.style.display = 'block';
   }
+  
   function hideEditSuggestions(){ editSuggestionsEl.style.display = 'none'; editSuggestionsEl.innerHTML = ''; }
 
   function openEdit(i) {
@@ -560,7 +545,6 @@
     editColor.value = c.color || '#000000';
     editImage.value = '';
     editImage._uploadedData = null;
-    // if image is a relative URL (not data:), treat as a sample selection
     editImage.dataset.sample = (c.image && !c.image.startsWith('data:')) ? c.image : '';
     highlightEditSample(editImage.dataset.sample || '');
     updateEditModalPreview();
@@ -616,7 +600,7 @@
       c.image = editImage._uploadedData;
     } else if (editImage.dataset.sample) {
       c.image = editImage.dataset.sample;
-    } // else keep existing image
+    }
 
     c.text = txt;
     c.color = col;
@@ -653,14 +637,12 @@
     if (!src) throw new Error('No image src');
     if (typeof src === 'string' && src.startsWith('data:')) return src;
 
-    // Try fetch -> blob -> dataURL (works if images are served with CORS or same-origin)
     try {
       const res = await fetch(src, { mode: 'cors' });
       if (!res.ok) throw new Error('Fetch failed: ' + res.status);
       const blob = await res.blob();
       return await blobToDataURL(blob);
     } catch (err) {
-      // Fallback: draw to canvas (works for same-origin)
       return new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
@@ -676,194 +658,6 @@
             reject(e);
           }
         };
-        img.onerror = () => reject(new Error('Could not load image for conversion: ' + src));
+        img.onerror = () => reject(new Error('Could not load image: ' + src));
         img.src = src;
       });
-    }
-  }
-
-  function loadImageFromDataURL(dataURL) {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error('Image load error'));
-      img.src = dataURL;
-    });
-  }
-
-  // -------------------------
-  // PDF generation
-  // -------------------------
-  // ---- Optimized PDF generation (parallel image loading) ----
-async function generatePDF() {
-  if (cards.length === 0) {
-    alert("No cards to generate.");
-    return;
-  }
-
-  const doc = new jsPDF("p", "mm", "a4");
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
-
-  const cardWidth = 55;       // mm
-  const baseHeight = 60;      // mm
-  const tabOffset = 7;        // mm increase per card (if stacking enabled)
-  const maxTabs = 9;          // resets after 9
-  const cornerRadius = 5;     // mm
-  const margin = 6;           // mm spacing between cards & edges
-  const holeOffset = 6;       // mm inward from top-left
-  const holeRadius = 3;       // mm
-  const topSafe = 10;         // mm top safe area inside card
-  const imageAboveTextGap = 5;
-  const textBottomMargin = 3;
-
-  const useStacking = document.getElementById("stackingToggle").checked;
-  const holePosition = document.getElementById("holePosition").value || "corner"; // new dropdown/toggle
-
-  // --- Step 1: preload all images in parallel ---
-  const imagePromises = cards.map(async (c) => {
-    try {
-      const dataURL = await ensureDataURL(c.image);
-      const img = await loadImageFromDataURL(dataURL);
-      return { ...c, dataURL, img };
-    } catch (err) {
-      console.warn("Image load failed:", c.text, err);
-      return { ...c, dataURL: null, img: null };
-    }
-  });
-
-  const loadedCards = await Promise.all(imagePromises); // parallel load
-
-  // --- Step 2: draw all cards ---
-  let x = margin, y = margin;
-
-  for (let i = 0; i < loadedCards.length; i++) {
-    const c = loadedCards[i];
-    const cycleIndex = i % maxTabs;
-    const cardH = useStacking ? baseHeight + cycleIndex * tabOffset : baseHeight;
-
-    // wrap to next column
-    if (x + cardWidth > pageW - margin) {
-      x = margin;
-      y += cardH + margin;
-    }
-
-    // new page if necessary
-    if (y + cardH > pageH - margin) {
-      doc.addPage();
-      x = margin;
-      y = margin;
-    }
-
-    // rounded card outline
-    doc.setDrawColor(0);
-    doc.setLineWidth(0.5);
-    if (doc.roundedRect) {
-      doc.roundedRect(x, y, cardWidth, cardH, cornerRadius, cornerRadius, "S");
-    } else {
-      doc.rect(x, y, cardWidth, cardH);
-    }
-
-    // --- draw hole ---
-    let holeX = x + holeOffset;
-    let holeY = y + holeOffset;
-    if (holePosition === "center") {
-      holeX = x + cardWidth / 2; // horizontally centred
-      holeY = y + holeOffset;    // same top distance as corner
-    }
-    doc.setDrawColor(180);
-    doc.circle(holeX, holeY, holeRadius, "S");
-    doc.setDrawColor(0);
-
-    // --- draw image ---
-    if (c.img && c.dataURL) {
-      const textY = y + cardH - textBottomMargin;
-      const imgBottomY = textY - imageAboveTextGap;
-      const imgH = Math.min(40, imgBottomY - (y + topSafe));
-      const imgW = cardWidth - 10;
-
-      const aspect = c.img.naturalWidth / c.img.naturalHeight;
-      let drawW = imgW, drawH = imgH;
-      if (drawW / drawH > aspect) drawW = drawH * aspect;
-      else drawH = drawW / aspect;
-
-      const drawX = x + (cardWidth - drawW) / 2;
-      const drawY = imgBottomY - drawH;
-
-      let fmt = "PNG";
-      if (c.dataURL.startsWith("data:image/jpeg")) fmt = "JPEG";
-      else if (c.dataURL.startsWith("data:image/webp")) fmt = "WEBP";
-
-      doc.addImage(c.dataURL, fmt, drawX, drawY, drawW, drawH);
-    }
-
-    // --- draw text ---
-    doc.setFontSize(16);
-    doc.setTextColor(c.color || "#000000");
-    doc.text(String(c.text || ""), x + cardWidth / 2, y + cardH - textBottomMargin, {
-      align: "center",
-    });
-
-    // advance to next card position
-    x += cardWidth + margin;
-  }
-
-  doc.save("pecs-cards.pdf");
-}
-
-
-  // -------------------------
-  // Utilities & init
-  // -------------------------
-  function escapeHtml(s) {
-    if (s === undefined || s === null) return '';
-    return String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
-  }
-
-  // category filter helper (header buttons)
-  function filterCategory(cat) {
-    if (cat === 'all') {
-      resetCategoryView();
-      return;
-    }
-    sampleImagesContainer.querySelectorAll('.sample-row').forEach(r => {
-      r.style.display = (r.dataset.category === cat) ? 'flex' : 'none';
-    });
-  }
-
-  // expose some funcs to global scope used by inline onclick in built gallery
-  window.filterCategory = filterCategory;
-
-  // build gallery and edit gallery, then initial render
-  buildCategoryGallery();
-  populateEditSampleGallery();
-  renderPreview();
-
-  // Expose addCard for button onclick attribute (keeps your existing markup)
-  window.addCard = addCard;
-  window.generatePDF = generatePDF;
-  window.clearCards = clearCards;
-  window.openEdit = openEdit;
-  window.removeCard = removeCard;
-  window.useSampleImage = function(imgEl) {
-    // for compatibility with inline onclick attributes left in your HTML
-    selectedSampleImage = imgEl.src;
-    tempPreviewImage = imgEl.src;
-    highlightSample(imgEl.src);
-    updateTempPreview();
-  };
-
-  // also expose saveEdit/closeEdit for modal buttons
-  window.saveEdit = saveEdit;
-  window.closeEditModal = closeEditModal;
-
-  </script>
-
-  <!-- buy-me-a-coffee (optional) -->
-  <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
-    data-name="bmc-button" data-slug="nilltronic" data-color="#FFDD00" data-emoji="" data-font="Cookie"
-    data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" >
-  </script>
-
-</body>
-</html>
