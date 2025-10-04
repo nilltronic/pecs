@@ -115,7 +115,7 @@
   Hole position:
   <select id="holePosition">
     <option value="corner" selected>Corner</option>
-    <option value="center">Center</option>
+    <option value="center">Center (horizontally)</option>
   </select>
 </label>
 
@@ -696,31 +696,18 @@
   // -------------------------
   async function generatePDF() {
     if (cards.length === 0) { alert('No cards to generate.'); return; }
+
+    // use jspdf namespace correctly
     const doc = new jspdf.jsPDF('p','mm','a4');
     const pageW = doc.internal.pageSize.getWidth();
     const pageH = doc.internal.pageSize.getHeight();
 
+    // layout constants
     const cardWidth = 55; const baseHeight = 60; const tabOffset = 7; const maxTabs = 9;
-    const cornerRadius = 5; const margin = 6; 
-    //const holeOffset = 6; const holeRadius = 3;
+    const cornerRadius = 5; const margin = 6;
     const holeRadius = 3; // mm
-const holePosition = document.getElementById('holePosition').value;
-
-let holeX, holeY;
-if (holePosition === 'center') {
-  // center of card
-  holeX = x + cardWidth / 2;
-  holeY = y + cardH / 2;
-} else {
-  // top-left corner (default)
-  holeX = x + 6;
-  holeY = y + 6;
-}
-
-// pale grey hole guide
-doc.setDrawColor(180);
-doc.circle(holeX, holeY, holeRadius, 'S');
-doc.setDrawColor(0);
+    const holeOffset = 6; // mm distance from top (used both for corner and top offset when centered)
+    const holePosition = document.getElementById('holePosition').value;
 
     const topSafe = 10; const imageAboveTextGap = 5; const textBottomMargin = 3;
 
@@ -732,26 +719,41 @@ doc.setDrawColor(0);
       const cycleIndex = i % maxTabs;
       const cardH = useStacking ? (baseHeight + cycleIndex * tabOffset) : baseHeight;
 
-      // wrap
+      // wrap to next row if doesn't fit horizontally
       if (x + cardWidth > pageW - margin) {
         x = margin;
         y += cardH + margin;
       }
 
-      // new page
+      // new page if necessary
       if (y + cardH > pageH - margin) {
         doc.addPage();
         x = margin; y = margin;
       }
 
-      // border
+      // draw rounded rect border
       doc.setDrawColor(0); doc.setLineWidth(0.5);
       if (doc.roundedRect) doc.roundedRect(x, y, cardWidth, cardH, cornerRadius, cornerRadius, 'S');
       else doc.rect(x, y, cardWidth, cardH);
 
-      // hole guide
-      doc.setDrawColor(180); doc.circle(x + holeOffset, y + holeOffset, holeRadius, 'S'); doc.setDrawColor(0);
+      // ---- hole guide: compute per-card coordinates ----
+      // If 'center' is selected we place the hole horizontally centred on the card,
+      // but keep the same distance from the top as the corner option (holeOffset).
+      let holeX, holeY;
+      if (holePosition === 'center') {
+        holeX = x + cardWidth / 2;   // horizontally centered
+        holeY = y + holeOffset;      // same vertical offset from top as corner
+      } else {
+        // corner (default)
+        holeX = x + holeOffset;
+        holeY = y + holeOffset;
+      }
+      // draw pale grey hole guide
+      doc.setDrawColor(180);
+      doc.circle(holeX, holeY, holeRadius, 'S');
+      doc.setDrawColor(0);
 
+      // layout image area & draw image
       const textY = y + cardH - textBottomMargin;
       let imgBottomY = textY - imageAboveTextGap;
       let imgH = Math.min(40, imgBottomY - (y + topSafe));
@@ -777,11 +779,12 @@ doc.setDrawColor(0);
         }
       }
 
-      // text
+      // draw the text (centered)
       doc.setFontSize(16);
       doc.setTextColor(c.color || '#000000');
       doc.text(String(c.text || ''), x + cardWidth / 2, textY, { align: 'center' });
 
+      // advance x for next card
       x += cardWidth + margin;
     }
 
@@ -843,21 +846,3 @@ doc.setDrawColor(0);
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
