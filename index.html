@@ -677,9 +677,16 @@
   // PDF generation with proper error handling
   // -------------------------
   async function generatePDF() {
+    // Show loading overlay
+    const loadingOverlay = document.createElement("div");
+    loadingOverlay.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:10000;";
+    loadingOverlay.innerHTML = '<div style="color:white;font-size:1.2em;">Generating PDF, please wait...</div>';
+    document.body.appendChild(loadingOverlay);
+
     try {
       if (cards.length === 0) {
         alert("No cards to generate.");
+        loadingOverlay.remove();
         return;
       }
 
@@ -720,16 +727,21 @@
 
       // Draw all cards
       let x = margin, y = margin;
+      let maxHeightInRow = 0;
 
       for (let i = 0; i < loadedCards.length; i++) {
         const c = loadedCards[i];
         const cycleIndex = i % maxTabs;
         const cardH = useStacking ? baseHeight + cycleIndex * tabOffset : baseHeight;
+        
+        // Track the maximum height in this row
+        maxHeightInRow = Math.max(maxHeightInRow, cardH);
 
         // Wrap to next column
         if (x + cardWidth > pageW - margin) {
           x = margin;
-          y += cardH + margin;
+          y += maxHeightInRow + margin;  // Use max height from previous row
+          maxHeightInRow = cardH;  // Reset for new row
         }
 
         // New page if necessary
@@ -737,6 +749,7 @@
           doc.addPage();
           x = margin;
           y = margin;
+          maxHeightInRow = cardH;  // Reset for new page
         }
 
         // Rounded card outline
@@ -781,9 +794,10 @@
           doc.addImage(c.dataURL, fmt, drawX, drawY, drawW, drawH);
         }
 
-        // Draw text
+        // Draw text with validation
         doc.setFontSize(16);
-        doc.setTextColor(c.color || "#000000");
+        const textColor = c.color || "#000000";
+        doc.setTextColor(textColor);
         doc.text(String(c.text || ""), x + cardWidth / 2, y + cardH - textBottomMargin, {
           align: "center",
         });
@@ -794,8 +808,13 @@
 
       doc.save("pecs-cards.pdf");
       
+      // Show success message
+      loadingOverlay.innerHTML = '<div style="color:white;font-size:1.2em;">✅ PDF generated successfully!</div>';
+      setTimeout(() => loadingOverlay.remove(), 1500);
+      
     } catch (error) {
       console.error("PDF generation error:", error);
+      loadingOverlay.remove();
       alert("Failed to generate PDF: " + error.message + "\n\nPlease check the browser console for details.");
     }
   }
