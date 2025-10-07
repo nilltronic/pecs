@@ -148,6 +148,7 @@
     <img src="images/listen.png" alt="Listen" onclick="useSampleImage(this)" data-name="Listen">
     <img src="images/eat.png" alt="Eat" onclick="useSampleImage(this)" data-name="Eat">
     <img src="images/food.png" alt="Food" onclick="useSampleImage(this)" data-name="Food">
+    <img src="images/look.png" alt="Look" onclick="useSampleImage(this)" data-name="Look">
   </div>
 
   <!-- Edit modal -->
@@ -225,7 +226,8 @@
     { name: "Bucket", src: "images/bucket.png", keywords: ["bucket","bucket time"] },
     { name: "Listen", src: "images/listen.png", keywords: ["listen"] },
     { name: "Eat", src: "images/eat.png", keywords: ["snack","food","eat"] },
-    { name: "Food", src: "images/food.png", keywords: ["snack","food","eat"] }
+    { name: "Food", src: "images/food.png", keywords: ["snack","food","eat"] },
+    { name: "Look", src: "images/look.png", keywords: ["look"] }
   ];
 
   // UI elements
