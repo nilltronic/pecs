@@ -136,7 +136,7 @@
     <img src="images/pick.png" alt="Pick" onclick="useSampleImage(this)" data-name="Pick">
     <img src="images/pe.png" alt="PE" onclick="useSampleImage(this)" data-name="PE">
     <img src="images/swimming.png" alt="Swimming" onclick="useSampleImage(this)" data-name="Swimming">
-    <img src="images/shoes.png" alt="Shoes" onclick="useSampleImage(this)" data-name="Shoes">
+    <img src="images/shoes.png" alt="Tie" onclick="useSampleImage(this)" data-name="tie">
     <img src="images/pirate.png" alt="Pirate" onclick="useSampleImage(this)" data-name="Pirate">
     <img src="images/classroom.png" alt="Classroom" onclick="useSampleImage(this)" data-name="Classroom">
     <img src="images/cafeteria.png" alt="Cafeteria" onclick="useSampleImage(this)" data-name="Cafeteria">
@@ -215,7 +215,7 @@
     { name: "Pick", src: "images/pick.png", keywords: ["pick","pick up"] },
     { name: "PE", src: "images/pe.png", keywords: ["pe","p.e.","sport","sports","physical education"] },
     { name: "Swimming", src: "images/swimming.png", keywords: ["swimming","pool"] },
-    { name: "Shoes", src: "images/shoes.png", keywords: ["shoes","trainers"] },
+    { name: "Shoes", src: "images/tie.png", keywords: ["tie","shoes","trainers"] },
     { name: "Pirate", src: "images/pirate.png", keywords: ["pirate","ship"] },
     { name: "Classroom", src: "images/classroom.png", keywords: ["classroom","class"] },
     { name: "Cafeteria", src: "images/cafeteria.png", keywords: ["cafeteria","dinner","lunch"] },
