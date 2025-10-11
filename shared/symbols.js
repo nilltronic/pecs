@@ -30,6 +30,8 @@
   { name:"Tie", src:"../shared/images/tie.png", keywords:["tie","trainers","shoes"], category:"Actions" },
   { name:"Listen", src:"../shared/images/listen.png", keywords:["listen"], category:"Actions" },
   { name:"Look", src:"../shared/images/look.png", keywords:["look"], category:"Actions" },
+  { name:"Shoes On", src:"../shared/images/shoes on.png", keywords:["shoes","on"], category:"Actions" },
+  { name:"Shoes Off", src:"../shared/images/shoes off.png", keywords:["shoes","off"], category:"Actions" },
 
   // Places
   { name:"Outside", src:"../shared/images/outside.png", keywords:["outside","play out"], category:"Places" },
