@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Communication Tools Hub</title>
+
+  <!-- 
+    🖌️ Basic styling
+    You can freely edit colors, fonts, or layout.
+  -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      color: #333;
+      text-align: center;
+      padding: 2em;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 0.4em;
+    }
+
+    p {
+      color: #555;
+      margin-bottom: 2em;
+    }
+
+    .tools {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 2em;
+    }
+
+    .tool-link {
+      display: inline-block;
+      text-decoration: none;
+      background: white;
+      border: 2px solid #ccc;
+      border-radius: 12px;
+      padding: 1.5em;
+      width: 250px;
+      transition: 0.3s;
+      box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .tool-link:hover {
+      border-color: #007bff;
+      transform: translateY(-4px);
+      box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .tool-title {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #007bff;
+      margin-bottom: 0.4em;
+    }
+
+    .tool-description {
+      font-size: 0.95em;
+      color: #444;
+    }
+
+    footer {
+      margin-top: 4em;
+      font-size: 0.9em;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 🧭 HEADER -->
+  <h1>Communication Tools Hub</h1>
+  <p>Choose a tool below. Shared symbols and images are loaded from the <code>shared</code> folder.</p>
+
+  <!-- 🧩 TOOL LINKS -->
+  <div class="tools">
+    <a href="lanyard/" class="tool-link">
+      <div class="tool-title">Lanyard Creator</div>
+      <div class="tool-description">
+        Design and print personalised lanyards using shared symbols.
+      </div>
+    </a>
+
+    <a href="now-and-next/" class="tool-link">
+      <div class="tool-title">Now and Next Board</div>
+      <div class="tool-description">
+        Create printable visual timetables using shared symbols.
+      </div>
+    </a>
+  </div>
+
+  <!-- 
+    🧱 ADDING MORE TOOLS IN THE FUTURE
+    -----------------------------------
+    1. Create a new folder (e.g. /choice-board/)
+    2. Inside, put your index.html and script.js
+    3. Load shared resources inside your new page with:
+         <script src="../shared/symbols.js"></script>
+         <img src="../shared/images/..." />
+    4. Add a new <a> block below:
+         <a href="choice-board/" class="tool-link">
+           <div class="tool-title">Choice Board</div>
+           <div class="tool-description">
+             Create visual choice cards using shared images.
+           </div>
+         </a>
+  -->
+
+  <footer>
+    © 2025 Communication Tools | Built by Ian Da
