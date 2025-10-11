@@ -59,4 +59,8 @@
   { name:"Pick", src:"../shared/images/pick.png", keywords:["pick","pick up"], category:"Behaviours" },
   { name:"Spitting", src:"../shared/images/spitting.png", keywords:["spitting","no spitting"], category:"Behaviours" },
   { name:"Scratching", src:"../shared/images/scratching.png", keywords:["scratching","no scratching"], category:"Behaviours" },
+  { name:"Good Choice", src:"../shared/images/good choice.png", keywords:["good choice","thumbs up"], category:"Behaviours" },
+
+  // Subjects
+  { name:"Maths", src:"../shared/images/maths.png", keywords:["maths"], category:"Subjects" },
 ];
