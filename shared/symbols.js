@@ -50,6 +50,8 @@
   { name:"Circle", src:"../shared/images/circle.png", keywords:["circle","circle time"], category:"Activities" },
   { name:"Bucket", src:"../shared/images/bucket.png", keywords:["bucket","bucket time"], category:"Activities" },
   { name:"Snack", src:"../shared/images/snack.png", keywords:["snack","snack time"], category:"Activities" },
+  { name:"Now", src:"../shared/images/now.png", keywords:["now"], category:"Activities" },
+  { name:"Next", src:"../shared/images/next.png", keywords:["next"], category:"Activities" },
 
   // Behavioural / others
   { name:"Hitting", src:"../shared/images/hitting.png", keywords:["hitting","no hitting"], category:"Behaviours" },
