@@ -1,68 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Now & Next — PECS Timetable Creator</title>
+  <meta charset="utf-8"/>
+  <title>PECS Tabbed Lanyard Card Creator</title>
 
-  <!-- external libs -->
+  <!-- external libs --> 
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.js"></script>
 
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-
   <style>
-    body { font-family: Arial, sans-serif; padding:18px; max-width:980px; margin:0 auto; }
-    h1 { margin-top:0; }
-    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    input, button, select { padding:8px; margin:6px 0; }
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
+    input, button { margin: 6px 0; padding: 8px; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+    /* Previews and cards */
     #preview, #tempPreview { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
-    .card { border:1px solid #ccc; border-radius:6px; width:120px; padding:8px; text-align:center; background:#fff; box-sizing:border-box; }
+    .card { border:1px solid #ccc; border-radius:6px; width:120px; padding:6px; text-align:center; background:#fafafa; box-sizing:border-box; }
     .card img { max-width:100%; height:auto; display:block; margin:0 auto 6px; }
-    .categoryHeader { display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+
+    /* Sample images (category gallery) */
+    .categoryHeader {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:6px 0;
+      margin-top:8px;
+    }
+    .categoryHeader button { font-size:13px; padding:4px 8px; }
+
     #sampleImages { margin-top:10px; }
     .sample-row { display:flex; flex-wrap:wrap; gap:8px; }
-    #sampleImages img { width:80px; height:80px; object-fit:contain; background:#fff; padding:4px; border:1px solid #ccc; border-radius:6px; cursor:pointer; }
-    #cardColor { width:40px; height:40px; padding:0; border-radius:6px; }
+
+    #sampleImages img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      background: white;
+      padding: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #cardColor { width: 40px; height: 40px; padding: 0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+
+    /* SortableJS visual helpers */
+    .sortable-ghost { opacity: 0.4; }
+    .sortable-chosen { border: 2px dashed #888; }
+    .sortable-drag { transform: rotate(3deg); }
+
+    /* Suggestions dropdown */
     .inputWrap { position:relative; display:inline-block; }
-    #suggestions, #editSuggestions { position:absolute; top: calc(100% + 6px); left:0; width:320px; background:#fff; border:1px solid #ccc; border-radius:4px; box-shadow:0 2px 6px rgba(0,0,0,0.12); max-height:220px; overflow:auto; z-index:2000; display:none; }
-    #suggestions .item, #editSuggestions .item { display:flex; gap:8px; padding:6px; cursor:pointer; align-items:center; }
-    #suggestions img, #editSuggestions img { width:36px; height:36px; object-fit:contain; border:1px solid #eee; border-radius:4px; }
-    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:3000; align-items:center; justify-content:center; }
-    .modal-content { background:#fff; padding:16px; border-radius:8px; width:360px; box-shadow:0 8px 30px rgba(0,0,0,0.2); }
-    .small-thumb { width:48px; height:48px; object-fit:contain; border:1px solid #ccc; margin:2px; cursor:pointer; border-radius:4px; }
-    .muted { color:#666; font-size:13px; margin-left:8px; }
-    .btn-small { padding:6px 10px; font-size:14px; }
+    #suggestions, #editSuggestions {
+      position:absolute;
+      top: calc(100% + 6px);
+      left:0;
+      width: 320px;
+      background:#fff;
+      border:1px solid #ccc;
+      border-radius:4px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.12);
+      max-height:220px;
+      overflow:auto;
+      z-index:2000;
+      display:none;
+    }
+    #suggestions .item, #editSuggestions .item { display:flex; align-items:center; gap:8px; padding:6px; cursor:pointer; }
+    #suggestions .item:hover, #editSuggestions .item:hover { background:#f3f3f3; }
+    #suggestions img, #editSuggestions img { width:36px; height:36px; object-fit:contain; border:1px solid #eee; border-radius:3px; }
+    #suggestions .label, #editSuggestions .label { font-size:14px; }
+
+    /* Modal styling */
+    .modal { display:none; position:fixed; z-index:3000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; }
+    .modal-content { background:#fff; padding:20px; border-radius:8px; width:340px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+    .modal-content h3 { margin-top:0; }
+    .small-thumb { width:48px; height:48px; object-fit:contain; border:1px solid #ccc; margin:2px; cursor:pointer; }
+
+    /* small helpers */
+    .muted { color: #666; font-size: 13px; margin-left: 8px; }
+    .warning { color: #d63031; font-size: 14px; margin-left: 8px; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <h1>Now & Next — PECS Timetable Creator</h1>
+  <h1>PECS Tabbed Lanyard Card Creator</h1>
+  <p class="muted">Create up to 10 activity cards with side tabs for easy flipping through your daily schedule.</p>
 
   <div class="row">
     <div class="inputWrap">
-      <input id="cardText" type="text" placeholder="Enter label text (optional)" style="width:320px;">
+      <input type="text" id="cardText" placeholder="Enter activity name" style="width:320px;">
       <div id="suggestions" aria-hidden="true"></div>
     </div>
 
     <input type="button" value="Upload Image" onclick="document.getElementById('cardImage').click();" />
-    <input type="file" id="cardImage" style="display:none;" accept="image/*">
+    <input type="file" style="display:none;" id="cardImage" name="cardImage" accept="image/*"/>
 
-    <button onclick="addCard()">Add Symbol</button>
-    <button onclick="generatePDF()">Generate PDF (Timetable + Symbols)</button>
+    <button onclick="addCard()">Add Card</button>
+    <button onclick="generatePDF()">Generate PDF</button>
+    <button onclick="clearCards()">Clear</button>
 
     <label for="cardColor">Text color:</label>
     <input type="color" id="cardColor" value="#000000">
 
-    <span class="muted">Hole punch: centered (on timetable)</span>
+    <span id="cardCountWarning" class="warning" style="display:none;">Maximum 10 cards!</span>
   </div>
 
-  <h3>Card in progress</h3>
+  <h3>Card in Progress</h3>
   <div id="tempPreview"></div>
 
-  <h3>Added symbols (drag to reorder)</h3>
+  <h3>Added Cards (<span id="cardCount">0</span>/10) - Drag to reorder</h3>
   <div id="preview"></div>
 
-  <h3>Sample images</h3>
+  <h3>Sample Images</h3>
+
   <div id="categoryButtons" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
   <button onclick="filterCategory('all')">All</button>
   <!-- Category buttons will be dynamically added here -->
@@ -73,44 +123,52 @@
     <!-- Each category container created dynamically by JS from symbolLibrary -->
   </div>
 
-<!-- Edit modal -->
+  <!-- Edit modal -->
   <div id="editModal" class="modal" aria-hidden="true">
     <div class="modal-content">
-      <h3>Edit Symbol</h3>
-      <input id="editText" type="text" placeholder="Label text" style="width:100%;">
+      <h3>Edit Card</h3>
+      <input type="text" id="editText" placeholder="Activity name" style="width:100%;">
       <div id="editSuggestions" style="display:none;"></div>
+
       <label>Text color:</label>
-      <input id="editColor" type="color" value="#000000">
-      <div style="margin-top:8px;">
-        <input type="button" value="Choose Image" onclick="document.getElementById('editImage').click();" />
-        <input type="file" id="editImage" style="display:none;" accept="image/*">
-      </div>
+      <input type="color" id="editColor" value="#000000" style="width:48px;"><br>
+
+      <input type="button" value="Choose Image" onclick="document.getElementById('editImage').click();" />
+      <input type="file" style="display:none;" id="editImage" name="editImage" accept="image/*"/>
+
       <div id="editSampleImages" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; max-height:120px; overflow:auto;"></div>
 
-      <div style="text-align:right; margin-top:12px;">
-        <button onclick="saveEdit()" class="btn-small">Save</button>
-        <button onclick="closeEditModal()" class="btn-small">Cancel</button>
+      <div style="margin-top:12px; text-align:right;">
+        <button onclick="saveEdit()">Save</button>
+        <button onclick="closeEditModal()">Cancel</button>
       </div>
     </div>
   </div>
 
-<!-- Load shared symbols library -->
 <script src="../shared/symbols.js"></script>
 
-<script>
-  // ---------- App state ----------
-  const cards = []; // each: { text, color, image } image can be dataURL or path
+  <script>
+  // -------------------------
+  // Application state
+  // -------------------------
+  const MAX_CARDS = 10;
+  const cards = []; // { text, color, image }
   let selectedSampleImage = null;
   let tempPreviewImage = null;
   let editingIndex = null;
 
-  // ---------- References ----------
+  // -------------------------
+  // UI references
+  // -------------------------
   const cardTextInput = document.getElementById('cardText');
   const suggestionsEl = document.getElementById('suggestions');
   const tempPreviewEl = document.getElementById('tempPreview');
   const previewEl = document.getElementById('preview');
   const sampleImagesContainer = document.getElementById('sampleImages');
+  const cardCountEl = document.getElementById('cardCount');
+  const cardCountWarning = document.getElementById('cardCountWarning');
 
+  // Edit modal refs
   const editModal = document.getElementById('editModal');
   const editText = document.getElementById('editText');
   const editColor = document.getElementById('editColor');
@@ -118,25 +176,55 @@
   const editSampleImagesEl = document.getElementById('editSampleImages');
   const editSuggestionsEl = document.getElementById('editSuggestions');
 
-  // ---------- Build gallery ----------
-  function buildCategoryGallery(){
+  // -------------------------
+  // Tab position calculator
+  // -------------------------
+  function getTabPosition(index, totalCards) {
+    // Distribute tabs: symmetrical left/right, odd on bottom
+    // Pattern for max 10: L(3) B(4) R(3)
+    
+    const leftCount = Math.floor(totalCards / 3);
+    const rightCount = Math.floor(totalCards / 3);
+    const bottomCount = totalCards - leftCount - rightCount;
+    
+    if (index < leftCount) {
+      return { side: 'left', position: index };
+    } else if (index < leftCount + bottomCount) {
+      return { side: 'bottom', position: index - leftCount };
+    } else {
+      return { side: 'right', position: index - leftCount - bottomCount };
+    }
+  }
+
+  // -------------------------
+  // Build categories UI from library
+  // -------------------------
+  function buildCategoryGallery() {
+    const cats = [...new Set(symbolLibrary.map(s => s.category || 'Uncategorized'))];
     sampleImagesContainer.innerHTML = '';
-    const cats = [...new Set(symbolLibrary.map(s=>s.category||'Uncategorized'))];
     cats.forEach(cat => {
       const header = document.createElement('div');
       header.className = 'categoryHeader';
-      header.innerHTML = `<strong>${cat}</strong>`;
+      header.innerHTML = `
+        <strong>${cat}</strong>
+        <div>
+          <button type="button" data-action="toggle" data-cat="${cat}">Collapse</button>
+          <button type="button" data-action="showOnly" data-cat="${cat}" style="margin-left:6px;">Show only</button>
+        </div>
+      `;
       sampleImagesContainer.appendChild(header);
 
       const row = document.createElement('div');
       row.className = 'sample-row';
       row.dataset.category = cat;
-
-      symbolLibrary.filter(s => (s.category||'Uncategorized')===cat).forEach(s => {
+      symbolLibrary.filter(s => (s.category||'Uncategorized') === cat).forEach(s => {
         const img = document.createElement('img');
         img.src = s.src;
         img.alt = s.name;
         img.title = s.name;
+        img.dataset.name = s.name;
+        img.dataset.src = s.src;
+        img.dataset.category = cat;
         img.addEventListener('click', () => {
           selectedSampleImage = s.src;
           tempPreviewImage = s.src;
@@ -145,32 +233,89 @@
         });
         row.appendChild(img);
       });
-
       sampleImagesContainer.appendChild(row);
+
+      header.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.dataset.action;
+          const c = btn.dataset.cat;
+          if (action === 'toggle') {
+            if (row.style.display === 'none') {
+              row.style.display = 'flex';
+              btn.textContent = 'Collapse';
+            } else {
+              row.style.display = 'none';
+              btn.textContent = 'Expand';
+            }
+          } else if (action === 'showOnly') {
+            sampleImagesContainer.querySelectorAll('.sample-row').forEach(r => {
+              r.style.display = (r.dataset.category === c) ? 'flex' : 'none';
+            });
+            sampleImagesContainer.querySelectorAll('.categoryHeader button[data-action="toggle"]').forEach(b => {
+              const catb = b.dataset.cat;
+              const rowb = sampleImagesContainer.querySelector(`.sample-row[data-category="${catb}"]`);
+              b.textContent = (rowb.style.display === 'none') ? 'Expand' : 'Collapse';
+            });
+          }
+        });
+      });
+    });
+
+    const reset = document.createElement('div');
+    reset.style.marginTop = '8px';
+    reset.innerHTML = `<button onclick="resetCategoryView()">Show all categories</button> <span class="muted">(or use category buttons above)</span>`;
+    sampleImagesContainer.appendChild(reset);
+  }
+
+  function resetCategoryView(){
+    sampleImagesContainer.querySelectorAll('.sample-row').forEach(r => r.style.display = 'flex');
+    sampleImagesContainer.querySelectorAll('.categoryHeader button[data-action="toggle"]').forEach(b => b.textContent = 'Collapse');
+  }
+
+  function populateEditSampleGallery(){
+    editSampleImagesEl.innerHTML = '';
+    symbolLibrary.forEach(s => {
+      const thumb = document.createElement('img');
+      thumb.className = 'small-thumb';
+      thumb.src = s.src;
+      thumb.title = s.name;
+      thumb.dataset.src = s.src;
+      thumb.addEventListener('click', () => {
+        editImage.dataset.sample = s.src;
+        editImage._uploadedData = null;
+        highlightEditSample(s.src);
+        updateEditModalPreview();
+      });
+      editSampleImagesEl.appendChild(thumb);
     });
   }
 
-  // ---------- Suggestions for add-mode ----------
+  // -------------------------
+  // Suggestions (add-mode)
+  // -------------------------
   cardTextInput.addEventListener('input', onTextInput);
   cardTextInput.addEventListener('focus', onTextInput);
   document.addEventListener('click', (e) => {
     if (!suggestionsEl.contains(e.target) && e.target !== cardTextInput) hideSuggestions();
   });
 
-  function onTextInput(){
-    const q = (cardTextInput.value||'').toLowerCase().trim();
+  function onTextInput() {
+    const q = (cardTextInput.value || '').toLowerCase().trim();
     if (!q) { hideSuggestions(); updateTempPreview(); return; }
+
     const matches = symbolLibrary.filter(item => {
       if (item.name && item.name.toLowerCase().includes(q)) return true;
       if (item.keywords && item.keywords.some(k => k.toLowerCase().includes(q))) return true;
       return false;
     });
-    if (!matches.length) { hideSuggestions(); updateTempPreview(); return; }
+
+    if (matches.length === 0) { hideSuggestions(); updateTempPreview(); return; }
+
     suggestionsEl.innerHTML = '';
-    matches.forEach(item=>{
+    matches.forEach(item => {
       const row = document.createElement('div');
       row.className = 'item';
-      row.innerHTML = `<img src="${item.src}" alt="${escapeHtml(item.name)}"><div style="font-size:14px;">${escapeHtml(item.name)}<div style="font-size:12px;color:#666">${escapeHtml(item.category||'')}</div></div>`;
+      row.innerHTML = `<img src="${item.src}" alt="${escapeHtml(item.name)}"><div class="label">${escapeHtml(item.name)} <div style="font-size:12px;color:#666">${escapeHtml(item.category||'')}</div></div>`;
       row.onclick = () => {
         selectedSampleImage = item.src;
         tempPreviewImage = item.src;
@@ -182,25 +327,25 @@
       };
       suggestionsEl.appendChild(row);
     });
-    suggestionsEl.style.display = 'block';
+    showSuggestions();
   }
+  
+  function showSuggestions(){ suggestionsEl.style.display = 'block'; }
   function hideSuggestions(){ suggestionsEl.style.display = 'none'; suggestionsEl.innerHTML = ''; }
 
-  function highlightSample(src){
-    sampleImagesContainer.querySelectorAll('img').forEach(img=>{
+  function highlightSample(src) {
+    sampleImagesContainer.querySelectorAll('img').forEach(img => {
       img.style.borderColor = (img.src === src) ? '#007bff' : '#ccc';
-      img.style.boxShadow = (img.src === src) ? '0 2px 8px rgba(0,123,255,0.12)' : 'none';
     });
   }
 
-  // ---------- Local upload preview ----------
-  document.getElementById('cardImage').addEventListener('change', function(){
+  document.getElementById('cardImage').addEventListener('change', function() {
     const f = this.files && this.files[0];
     if (!f) return;
+    selectedSampleImage = null;
     const reader = new FileReader();
     reader.onloadend = () => {
       tempPreviewImage = reader.result;
-      selectedSampleImage = null;
       highlightSample(null);
       updateTempPreview();
     };
@@ -208,44 +353,63 @@
   });
 
   function updateTempPreview(){
-    const text = cardTextInput.value.trim();
+    const text = document.getElementById('cardText').value.trim();
     const color = document.getElementById('cardColor').value;
     tempPreviewEl.innerHTML = '';
-    if (!tempPreviewImage && !text) return;
-    const d = document.createElement('div');
-    d.className = 'card';
-    d.innerHTML = `
-      <div style="width:100px;height:80px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;">
-        ${ tempPreviewImage ? `<img src="${tempPreviewImage}" style="max-width:100%;max-height:100%">` : '' }
-      </div>
-      <div style="color:${color};"><strong>${escapeHtml(text)}</strong></div>
-    `;
-    tempPreviewEl.appendChild(d);
+    if (tempPreviewImage || text) {
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `
+        <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
+          ${ tempPreviewImage ? `<img src="${tempPreviewImage}" alt="preview" style="max-width:100%; max-height:100%;">` : '' }
+        </div>
+        <div style="color:${color};"><strong>${escapeHtml(text)}</strong></div>
+      `;
+      tempPreviewEl.appendChild(d);
+    }
   }
 
-  // ---------- Add / Render / Edit ----------
-  function addCard(){
-    const text = cardTextInput.value.trim();
+  function updateCardCount() {
+    cardCountEl.textContent = cards.length;
+    if (cards.length >= MAX_CARDS) {
+      cardCountWarning.style.display = 'inline';
+    } else {
+      cardCountWarning.style.display = 'none';
+    }
+  }
+
+  // -------------------------
+  // Add / Edit / Render cards
+  // -------------------------
+  function addCard() {
+    if (cards.length >= MAX_CARDS) {
+      alert(`Maximum ${MAX_CARDS} cards allowed!`);
+      return;
+    }
+
+    const text = document.getElementById('cardText').value.trim();
     const color = document.getElementById('cardColor').value;
     const fileInput = document.getElementById('cardImage');
+
+    if (!text) { alert('Please enter activity name.'); return; }
 
     if (fileInput.files.length > 0) {
       const reader = new FileReader();
       reader.onloadend = () => {
         cards.push({ text, color, image: reader.result });
-        resetInputs(); renderPreview();
+        resetInputs(); renderPreview(); updateCardCount();
       };
       reader.readAsDataURL(fileInput.files[0]);
     } else if (selectedSampleImage) {
       cards.push({ text, color, image: selectedSampleImage });
-      resetInputs(); renderPreview();
+      resetInputs(); renderPreview(); updateCardCount();
     } else {
-      alert('Please choose a symbol image (upload or sample).');
+      alert('Please choose an image (upload or sample).');
     }
   }
 
   function resetInputs(){
-    cardTextInput.value = '';
+    document.getElementById('cardText').value = '';
     document.getElementById('cardImage').value = '';
     selectedSampleImage = null;
     tempPreviewImage = null;
@@ -256,54 +420,44 @@
 
   function renderPreview(){
     previewEl.innerHTML = '';
-    cards.forEach((c,i)=>{
+    cards.forEach((c,i) => {
+      const tabInfo = getTabPosition(i, cards.length);
       const d = document.createElement('div');
       d.className = 'card';
       d.innerHTML = `
-        <div style="width:100px;height:80px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;">
-          <img src="${c.image}" alt="sym" style="max-width:100%;max-height:100%;">
+        <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
+          <img src="${c.image}" alt="img" style="max-width:100%; max-height:100%;">
         </div>
         <div style="color:${c.color};"><strong>${escapeHtml(c.text)}</strong></div>
+        <div style="font-size:11px; color:#666; margin-top:2px;">Tab: ${tabInfo.side}</div>
         <div style="margin-top:6px;">
-          <button onclick="openEdit(${i})" class="btn-small">Edit</button>
-          <button onclick="removeCard(${i})" class="btn-small">Remove</button>
+          <button onclick="openEdit(${i})">Edit</button>
+          <button onclick="removeCard(${i})">Remove</button>
         </div>
       `;
       previewEl.appendChild(d);
     });
   }
 
-  function removeCard(i){ cards.splice(i,1); renderPreview(); }
-  function clearCards(){ if (confirm('Clear all symbols?')){ cards.length=0; renderPreview(); } }
+  function removeCard(i){ cards.splice(i,1); renderPreview(); updateCardCount(); }
+  function clearCards(){ if (confirm('Clear all cards?')){ cards.length = 0; renderPreview(); updateCardCount(); } }
 
   new Sortable(previewEl, {
-    animation:150,
-    ghostClass:'sortable-ghost',
-    onEnd(evt){
-      const [moved] = cards.splice(evt.oldIndex,1);
-      cards.splice(evt.newIndex,0,moved);
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
+    onEnd: function(evt) {
+      const [moved] = cards.splice(evt.oldIndex, 1);
+      cards.splice(evt.newIndex, 0, moved);
       renderPreview();
     }
   });
 
-  // ---------- Edit modal ----------
-  function populateEditSampleGallery(){
-    editSampleImagesEl.innerHTML = '';
-    symbolLibrary.forEach(s=>{
-      const thumb = document.createElement('img');
-      thumb.className = 'small-thumb';
-      thumb.src = s.src;
-      thumb.title = s.name;
-      thumb.addEventListener('click', ()=>{
-        editImage.dataset.sample = s.src;
-        editImage._uploadedData = null;
-        highlightEditSample(s.src);
-        updateEditModalPreview();
-      });
-      editSampleImagesEl.appendChild(thumb);
-    });
-  }
-
+  // -------------------------
+  // Edit modal logic
+  // -------------------------
+  populateEditSampleGallery();
   editText.addEventListener('input', onEditTextInput);
   editText.addEventListener('focus', onEditTextInput);
   document.addEventListener('click', (e) => {
@@ -311,19 +465,22 @@
   });
 
   function onEditTextInput(){
-    const q = (editText.value||'').toLowerCase().trim();
-    if(!q){ hideEditSuggestions(); return; }
+    const q = (editText.value || '').toLowerCase().trim();
+    if (!q) { hideEditSuggestions(); return; }
+
     const matches = symbolLibrary.filter(item => {
       if (item.name && item.name.toLowerCase().includes(q)) return true;
-      if (item.keywords && item.keywords.some(k=>k.toLowerCase().includes(q))) return true;
+      if (item.keywords && item.keywords.some(k => k.toLowerCase().includes(q))) return true;
       return false;
     });
-    if (!matches.length){ hideEditSuggestions(); return; }
+
+    if (matches.length === 0) { hideEditSuggestions(); return; }
+
     editSuggestionsEl.innerHTML = '';
-    matches.forEach(item=>{
+    matches.forEach(item => {
       const row = document.createElement('div');
       row.className = 'item';
-      row.innerHTML = `<img src="${item.src}" alt="${escapeHtml(item.name)}"><div>${escapeHtml(item.name)}</div>`;
+      row.innerHTML = `<img src="${item.src}" alt="${escapeHtml(item.name)}"><div class="label">${escapeHtml(item.name)}</div>`;
       row.onclick = () => {
         editImage.dataset.sample = item.src;
         editImage._uploadedData = null;
@@ -336,9 +493,10 @@
     });
     editSuggestionsEl.style.display = 'block';
   }
+  
   function hideEditSuggestions(){ editSuggestionsEl.style.display = 'none'; editSuggestionsEl.innerHTML = ''; }
 
-  function openEdit(i){
+  function openEdit(i) {
     editingIndex = i;
     const c = cards[i];
     editText.value = c.text;
@@ -349,14 +507,18 @@
     highlightEditSample(editImage.dataset.sample || '');
     updateEditModalPreview();
     editModal.style.display = 'flex';
+    editModal.setAttribute('aria-hidden', 'false');
   }
 
-  editImage.addEventListener('change', ()=>{
-    if (editImage.files.length>0){
+  editImage.addEventListener('change', () => {
+    if (editImage.files.length > 0) {
       editImage.dataset.sample = '';
       highlightEditSample(null);
       const reader = new FileReader();
-      reader.onload = (e) => { editImage._uploadedData = e.target.result; updateEditModalPreview(); };
+      reader.onload = (e) => {
+        editImage._uploadedData = e.target.result;
+        updateEditModalPreview();
+      };
       reader.readAsDataURL(editImage.files[0]);
     }
   });
@@ -364,7 +526,6 @@
   function highlightEditSample(src){
     editSampleImagesEl.querySelectorAll('img').forEach(el => {
       el.style.borderColor = (el.src === src) ? '#007bff' : '#ccc';
-      el.style.boxShadow = (el.src === src) ? '0 2px 8px rgba(0,123,255,0.12)' : 'none';
     });
   }
 
@@ -379,8 +540,8 @@
     previewBox.className = 'card';
     previewBox.id = 'modalPreview';
     previewBox.innerHTML = `
-      <div style="width:100px;height:80px;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;">
-        ${ imgSrc ? `<img src="${imgSrc}" style="max-width:100%;max-height:100%;">` : '' }
+      <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
+        ${ imgSrc ? `<img src="${imgSrc}" style="max-width:100%; max-height:100%;">` : '' }
       </div>
       <div style="color:${color};"><strong>${escapeHtml(text)}</strong></div>
     `;
@@ -392,11 +553,13 @@
     const txt = editText.value.trim();
     const col = editColor.value;
     const c = cards[editingIndex];
+
     if (editImage.files.length > 0 && editImage._uploadedData) {
       c.image = editImage._uploadedData;
     } else if (editImage.dataset.sample) {
       c.image = editImage.dataset.sample;
     }
+
     c.text = txt;
     c.color = col;
     renderPreview();
@@ -405,29 +568,36 @@
 
   function closeEditModal(){
     editModal.style.display = 'none';
+    editModal.setAttribute('aria-hidden', 'true');
     editingIndex = null;
     editImage._uploadedData = null;
     const prev = document.getElementById('modalPreview');
     if (prev) prev.remove();
   }
-  editModal.addEventListener('click', (e)=>{ if (e.target === editModal) closeEditModal(); });
 
-  // ---------- Helpers for PDF ----------
+  editModal.addEventListener('click', (e) => {
+    if (e.target === editModal) closeEditModal();
+  });
+
+  // -------------------------
+  // Image helpers for PDF
+  // -------------------------
   function blobToDataURL(blob){
-    return new Promise((resolve,reject)=>{
-      const r = new FileReader();
-      r.onloadend = () => resolve(r.result);
-      r.onerror = reject;
-      r.readAsDataURL(blob);
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
     });
   }
 
-  async function ensureDataURL(src){
+  async function ensureDataURL(src) {
     if (!src) throw new Error('No image src');
     if (typeof src === 'string' && src.startsWith('data:')) return src;
+
     try {
       const res = await fetch(src, { mode: 'cors' });
-      if (!res.ok) throw new Error('Fetch failed ' + res.status);
+      if (!res.ok) throw new Error('Fetch failed: ' + res.status);
       const blob = await res.blob();
       return await blobToDataURL(blob);
     } catch (err) {
@@ -440,9 +610,11 @@
             canvas.width = img.naturalWidth;
             canvas.height = img.naturalHeight;
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(img,0,0);
+            ctx.drawImage(img, 0, 0);
             resolve(canvas.toDataURL('image/png'));
-          } catch(e){ reject(e); }
+          } catch (e) {
+            reject(e);
+          }
         };
         img.onerror = () => reject(new Error('Could not load image: ' + src));
         img.src = src;
@@ -450,212 +622,269 @@
     }
   }
 
-  function loadImageFromDataURL(dataURL){
-    return new Promise((resolve,reject)=>{
+  function loadImageFromDataURL(dataURL) {
+    return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = ()=>resolve(img);
-      img.onerror = ()=>reject(new Error('Image load error'));
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Image load error'));
       img.src = dataURL;
     });
   }
 
-  // ---------- Generate PDF ----------
-  async function generatePDF(){
+  // -------------------------
+  // PDF generation
+  // -------------------------
+  async function generatePDF() {
+    const loadingOverlay = document.createElement("div");
+    loadingOverlay.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:10000;";
+    loadingOverlay.innerHTML = '<div style="color:white;font-size:1.2em;">Generating PDF, please wait...</div>';
+    document.body.appendChild(loadingOverlay);
+
     try {
-      const timetableWidthMM = 110;
-      const timetableHeightMM = 60;
-      const symbolSizeMM = 45;
+      if (cards.length === 0) {
+        alert("No cards to generate.");
+        loadingOverlay.remove();
+        return;
+      }
+
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const doc = new jsPDF("p", "mm", "a4");
       const pageW = doc.internal.pageSize.getWidth();
-      const left = (pageW - timetableWidthMM) / 2;
-      const top = 20;
+      const pageH = doc.internal.pageSize.getHeight();
+
+      const cardW = 80;
+      const cardH = 60;
+      const baseTabSize = 20;
       const cornerRadius = 5;
+      const margin = 10;
+      const holeRadius = 3;
 
-      doc.setDrawColor(0);
-      doc.setLineWidth(0.6);
-      if (doc.roundedRect) {
-        doc.roundedRect(left, top, timetableWidthMM, timetableHeightMM, cornerRadius, cornerRadius, 'S');
-      } else {
-        doc.rect(left, top, timetableWidthMM, timetableHeightMM);
-      }
+      // Preload all images
+      const imagePromises = cards.map(async (c) => {
+        try {
+          const dataURL = await ensureDataURL(c.image);
+          const img = await loadImageFromDataURL(dataURL);
+          return { ...c, dataURL, img };
+        } catch (err) {
+          console.warn("Image load failed:", c.text, err);
+          return { ...c, dataURL: null, img: null };
+        }
+      });
 
-      const pad = 8;
-      const boxW = symbolSizeMM, boxH = symbolSizeMM;
-      const leftBoxX = left + pad;
-      const leftBoxY = top + 12;
-      const rightBoxX = left + timetableWidthMM - pad - boxW;
-      const rightBoxY = leftBoxY;
+      const loadedCards = await Promise.all(imagePromises);
 
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Now', leftBoxX + boxW/2, leftBoxY - 4, { align: 'center' });
-      doc.text('Next', rightBoxX + boxW/2, rightBoxY - 4, { align: 'center' });
+      // Calculate tab distributions
+      const totalCards = loadedCards.length;
+      const leftCount = Math.floor(totalCards / 3);
+      const rightCount = Math.floor(totalCards / 3);
+      const bottomCount = totalCards - leftCount - rightCount;
 
-      doc.setDrawColor(150);
-      if (doc.roundedRect) {
-        doc.roundedRect(leftBoxX, leftBoxY, boxW, boxH, cornerRadius, cornerRadius, 'S');
-        doc.roundedRect(rightBoxX, rightBoxY, boxW, boxH, cornerRadius, cornerRadius, 'S');
-      } else {
-        doc.rect(leftBoxX, leftBoxY, boxW, boxH);
-        doc.rect(rightBoxX, rightBoxY, boxW, boxH);
-      }
+      // Calculate tab sizes (expand to fill space)
+      const leftTabH = leftCount > 0 ? cardH / leftCount : baseTabSize;
+      const rightTabH = rightCount > 0 ? cardH / rightCount : baseTabSize;
+      const bottomTabW = bottomCount > 0 ? cardW / bottomCount : baseTabSize;
 
-      const holeX = left + timetableWidthMM/2;
-      const holeY = top + 4;
-      doc.setDrawColor(150);
-      doc.circle(holeX, holeY, 2, 'S');
+      // Draw each card
+      let x = margin, y = margin;
 
-      doc.setFontSize(9);
-      doc.setTextColor(80);
-      doc.text('Print timetable and stick matching symbol cards into the boxes.', left + timetableWidthMM/2, top + timetableHeightMM + 8, { align: 'center' });
+      for (let i = 0; i < loadedCards.length; i++) {
+        const c = loadedCards[i];
+        const tabInfo = getTabPosition(i, totalCards);
+        
+        // Calculate total width and height including tab
+        let totalW = cardW;
+        let totalH = cardH;
+        let tabX = 0, tabY = 0, tabW = 0, tabH = 0;
+        let cardX = x; // Main card X position (adjusted for left tabs)
 
-      if (cards.length > 0) {
-        doc.addPage();
-        const margin = 10;
-        let x = margin, y = margin;
-        const maxW = doc.internal.pageSize.getWidth();
-        const maxH = doc.internal.pageSize.getHeight();
+        if (tabInfo.side === 'left') {
+          totalW = cardW + baseTabSize;
+          tabW = baseTabSize;
+          tabH = leftTabH;
+          tabX = x;
+          tabY = y + (tabInfo.position * leftTabH);
+          cardX = x + baseTabSize; // Card starts AFTER the tab
+        } else if (tabInfo.side === 'right') {
+          totalW = cardW + baseTabSize;
+          tabW = baseTabSize;
+          tabH = rightTabH;
+          tabX = x + cardW;
+          tabY = y + (tabInfo.position * rightTabH);
+          cardX = x; // Card at normal position
+        } else { // bottom
+          totalH = cardH + baseTabSize;
+          tabW = bottomTabW;
+          tabH = baseTabSize;
+          tabX = x + (tabInfo.position * bottomTabW);
+          tabY = y + cardH;
+          cardX = x; // Card at normal position
+        }
 
-        for (let i=0;i<cards.length;i++){
-          const c = cards[i];
-          let dataURL;
-          try {
-            dataURL = await ensureDataURL(c.image);
-          } catch (err){
-            console.warn('Failed to convert image', err);
-            dataURL = null;
-          }
+        // Check if card fits on page, if not create new page
+        if (x + totalW > pageW - margin) {
+          x = margin;
+          y += 100; // Move down
+        }
+        if (y + totalH > pageH - margin) {
+          doc.addPage();
+          x = margin;
+          y = margin;
+        }
 
-          doc.setDrawColor(0);
-          doc.setLineWidth(0.5);
-          if (doc.roundedRect) {
-            doc.roundedRect(x, y, symbolSizeMM, symbolSizeMM, cornerRadius, cornerRadius, 'S');
+        // Recalculate positions after potential page change
+        if (tabInfo.side === 'left') {
+          tabX = x;
+          tabY = y + (tabInfo.position * leftTabH);
+          cardX = x + baseTabSize;
+        } else if (tabInfo.side === 'right') {
+          tabX = x + cardW;
+          tabY = y + (tabInfo.position * rightTabH);
+          cardX = x;
+        } else {
+          tabX = x + (tabInfo.position * bottomTabW);
+          tabY = y + cardH;
+          cardX = x;
+        }
+
+        // Draw main card body (use cardX instead of x)
+        doc.setDrawColor(0);
+        doc.setLineWidth(0.5);
+        doc.rect(cardX, y, cardW, cardH);
+
+        // Draw tab
+        doc.rect(tabX, tabY, tabW, tabH);
+
+        // Draw hole punch at top center of main card (use cardX)
+        const holeX = cardX + cardW / 2;
+        const holeY = y + 5;
+        doc.setDrawColor(180);
+        doc.circle(holeX, holeY, holeRadius, "S");
+        doc.setDrawColor(0);
+
+        // Draw image on main card (use cardX, moved down from hole punch, larger)
+        if (c.img && c.dataURL) {
+          const imgMaxW = cardW - 8; // Slightly larger (was 10)
+          const imgMaxH = cardH - 28; // Leave room for text
+          const aspect = c.img.naturalWidth / c.img.naturalHeight;
+          let drawW = imgMaxW, drawH = imgMaxH;
+          if (drawW / drawH > aspect) drawW = drawH * aspect;
+          else drawH = drawW / aspect;
+
+          const drawX = cardX + (cardW - drawW) / 2;
+          const drawY = y + 12; // Moved down to give space from hole
+
+          let fmt = "PNG";
+          if (c.dataURL.startsWith("data:image/jpeg")) fmt = "JPEG";
+          else if (c.dataURL.startsWith("data:image/webp")) fmt = "WEBP";
+
+          doc.addImage(c.dataURL, fmt, drawX, drawY, drawW, drawH);
+        }
+
+        // Draw text on main card (use cardX, bottom, moved down slightly)
+        doc.setFontSize(10);
+        doc.setTextColor(c.color || "#000000");
+        const textLines = doc.splitTextToSize(c.text, cardW - 8);
+        doc.text(textLines, cardX + cardW / 2, y + cardH - 6, { align: "center" });
+
+        // Draw image on tab (centered, fixed size)
+        if (c.img && c.dataURL) {
+          const tabImgSize = 14; // Image size
+          const aspect = c.img.naturalWidth / c.img.naturalHeight;
+          let tabImgW = tabImgSize, tabImgH = tabImgSize;
+          if (aspect > 1) tabImgH = tabImgSize / aspect;
+          else tabImgW = tabImgSize * aspect;
+
+          let tabImgX, tabImgY;
+          
+          if (tabInfo.side === 'left' || tabInfo.side === 'right') {
+            // For side tabs, center both horizontally and vertically
+            tabImgX = tabX + (tabW - tabImgW) / 2;
+            // Center vertically in the tab, accounting for text below, with small padding from top
+            const contentHeight = tabImgH + 6; // image + gap + text height
+            tabImgY = tabY + (tabH - contentHeight) / 2 + 1; // Added 1mm padding from top
           } else {
-            doc.rect(x, y, symbolSizeMM, symbolSizeMM);
+            // For bottom tabs, center horizontally and position at top
+            tabImgX = tabX + (tabW - tabImgW) / 2;
+            tabImgY = tabY + 2;
           }
 
-          if (dataURL){
-            const img = await loadImageFromDataURL(dataURL);
-            const maxImgSide = symbolSizeMM - 6;
-            const aspect = img.naturalWidth / img.naturalHeight;
-            let drawW = maxImgSide, drawH = maxImgSide;
-            if (aspect > 1) drawH = maxImgSide / aspect;
-            else drawW = maxImgSide * aspect;
+          let fmt = "PNG";
+          if (c.dataURL.startsWith("data:image/jpeg")) fmt = "JPEG";
+          else if (c.dataURL.startsWith("data:image/webp")) fmt = "WEBP";
 
-            const drawX = x + (symbolSizeMM - drawW)/2;
-            const drawY = y + (symbolSizeMM - drawH)/2;
-            let fmt = 'PNG';
-            if (dataURL.startsWith('data:image/jpeg')) fmt = 'JPEG';
-            else if (dataURL.startsWith('data:image/webp')) fmt = 'WEBP';
-            try {
-              doc.addImage(dataURL, fmt, drawX, drawY, drawW, drawH);
-            } catch (err) {
-              console.warn('addImage failed for card', err);
-            }
-          }
+          doc.addImage(c.dataURL, fmt, tabImgX, tabImgY, tabImgW, tabImgH);
+        }
 
-          if (c.text && c.text.trim()){
-            const textStr = String(c.text || '');
-            const maxTextWidth = symbolSizeMM - 8;
-            const textBottomY = y + symbolSizeMM - 3;
-            let fontSize = 10;
-            doc.setFontSize(fontSize);
-            doc.setTextColor(c.color || '#000000');
-            let textWidth = doc.getTextWidth(textStr);
-            
-            if (textWidth > maxTextWidth) {
-              const words = textStr.split(' ');
-              const lines = [];
-              let currentLine = '';
-              
-              words.forEach(word => {
-                const testLine = currentLine ? currentLine + ' ' + word : word;
-                doc.setFontSize(fontSize);
-                if (doc.getTextWidth(testLine) <= maxTextWidth) {
-                  currentLine = testLine;
-                } else {
-                  if (currentLine) lines.push(currentLine);
-                  currentLine = word;
-                }
-              });
-              if (currentLine) lines.push(currentLine);
-              
-              while ((lines.length > 2 || lines.some(line => doc.getTextWidth(line) > maxTextWidth)) && fontSize > 6) {
-                fontSize -= 1;
-                doc.setFontSize(fontSize);
-                lines.length = 0;
-                currentLine = '';
-                words.forEach(word => {
-                  const testLine = currentLine ? currentLine + ' ' + word : word;
-                  if (doc.getTextWidth(testLine) <= maxTextWidth) {
-                    currentLine = testLine;
-                  } else {
-                    if (currentLine) lines.push(currentLine);
-                    currentLine = word;
-                  }
-                });
-                if (currentLine) lines.push(currentLine);
-              }
-              
-              const lineHeight = fontSize * 0.4;
-              const startY = textBottomY - (lines.length - 1) * lineHeight;
-              lines.forEach((line, idx) => {
-                doc.text(line, x + symbolSizeMM / 2, startY + idx * lineHeight, { align: 'center' });
-              });
-            } else {
-              doc.text(textStr, x + symbolSizeMM / 2, textBottomY, { align: 'center' });
-            }
-          }
+        // Draw text on tab (horizontal, positioned below image)
+        doc.setFontSize(6);
+        doc.setTextColor(c.color || "#000000");
+        
+        if (tabInfo.side === 'left' || tabInfo.side === 'right') {
+          // Horizontal text below image for side tabs, vertically centered
+          const truncatedText = c.text.length > 6 ? c.text.substring(0, 5) + '.' : c.text;
+          const contentHeight = 14 + 6; // image height + gap + text
+          const textY = tabY + (tabH - contentHeight) / 2 + 14 + 4 + 1; // Added 1mm to match image adjustment
+          doc.text(truncatedText, tabX + tabW / 2, textY, { align: 'center' });
+        } else {
+          // Bottom tab - horizontal text below image
+          const truncatedText = c.text.length > 8 ? c.text.substring(0, 6) + '..' : c.text;
+          doc.text(truncatedText, tabX + tabW / 2, tabY + 18, { align: 'center' });
+        }
 
-          x += symbolSizeMM + 6;
-          if (x + symbolSizeMM + margin > maxW){
-            x = margin;
-            y += symbolSizeMM + 12;
-            if (y + symbolSizeMM + margin > maxH){
-              doc.addPage();
-              x = margin; y = margin;
-            }
-          }
+        // Move to next position
+        x += totalW + margin;
+        if (x + totalW > pageW - margin) {
+          x = margin;
+          y += 100;
         }
       }
 
-      doc.save('now-and-next.pdf');
-
-    } catch (err) {
-      console.error('PDF error', err);
-      alert('PDF generation failed — check console for details.');
+      doc.save("tabbed-lanyard-cards.pdf");
+      
+      loadingOverlay.innerHTML = '<div style="color:white;font-size:1.2em;">✅ PDF generated successfully!</div>';
+      setTimeout(() => loadingOverlay.remove(), 1500);
+      
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      loadingOverlay.remove();
+      alert("Failed to generate PDF: " + error.message + "\n\nPlease check the browser console for details.");
     }
   }
 
-  // ---------- Utils ----------
-  function escapeHtml(s){
+  // -------------------------
+  // Utilities & init
+  // -------------------------
+  function escapeHtml(s) {
     if (s === undefined || s === null) return '';
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
   }
 
-  // expose a few functions for buttons/global access
-  window.addCard = addCard;
-  window.generatePDF = generatePDF;
-  window.openEdit = openEdit;
-  window.removeCard = removeCard;
-  window.clearCards = clearCards;
-  window.filterCategory = function(cat){
+  function filterCategory(cat) {
     if (cat === 'all') {
-      sampleImagesContainer.querySelectorAll('.sample-row').forEach(r=> r.style.display='flex');
+      resetCategoryView();
       return;
     }
     sampleImagesContainer.querySelectorAll('.sample-row').forEach(r => {
       r.style.display = (r.dataset.category === cat) ? 'flex' : 'none';
     });
-  };
+  }
 
-  // ---------- Init render ----------
+  // Expose functions to global scope
+  window.filterCategory = filterCategory;
+  window.addCard = addCard;
+  window.generatePDF = generatePDF;
+  window.clearCards = clearCards;
+  window.openEdit = openEdit;
+  window.removeCard = removeCard;
+  window.saveEdit = saveEdit;
+  window.closeEditModal = closeEditModal;
+  window.resetCategoryView = resetCategoryView;
+
+  // Initialize
   buildCategoryGallery();
   populateEditSampleGallery();
   renderPreview();
-  updateTempPreview();
- // end initApp
+  updateCardCount();
 
 // Build category filter buttons dynamically
 function buildCategoryButtons() {
@@ -671,7 +900,7 @@ function buildCategoryButtons() {
 // Call it during initialization
 buildCategoryButtons();
 
-</script>
+  </script>
 <!-- buy-me-a-coffee (optional) -->
   <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
     data-name="bmc-button" data-slug="nilltronic" data-color="#FFDD00" data-emoji="" data-font="Cookie"
