@@ -50,8 +50,6 @@
   { name:"Circle", src:"../shared/images/circle.png", keywords:["circle","circle time"], category:"Activities" },
   { name:"Bucket", src:"../shared/images/bucket.png", keywords:["bucket","bucket time"], category:"Activities" },
   { name:"Snack", src:"../shared/images/snack.png", keywords:["snack","snack time"], category:"Activities" },
-  { name:"Now", src:"../shared/images/now.png", keywords:["now"], category:"Activities" },
-  { name:"Next", src:"../shared/images/next.png", keywords:["next"], category:"Activities" },
 
   // Behavioural / others
   { name:"Hitting", src:"../shared/images/hitting.png", keywords:["hitting","no hitting"], category:"Behaviours" },
@@ -65,4 +63,12 @@
 
   // Subjects
   { name:"Maths", src:"../shared/images/maths.png", keywords:["maths"], category:"Subjects" },
+
+  // Time
+  { name:"Now", src:"../shared/images/now.png", keywords:["now"], category:"Time" },
+  { name:"Next", src:"../shared/images/next.png", keywords:["next"], category:"Time" },
+
 ];
+
+// Define available categories (extracted from symbolLibrary)
+window.symbolCategories = [...new Set(window.symbolLibrary.map(s => s.category || 'Uncategorized'))];
