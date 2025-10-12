@@ -113,17 +113,10 @@
 
   <h3>Sample Images</h3>
 
-  <!-- Category controls (filter / collapse) -->
-  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-    <button onclick="filterCategory('all')">All</button>
-    <button onclick="filterCategory('Colors')">Colors</button>
-    <button onclick="filterCategory('Needs')">Needs</button>
-    <button onclick="filterCategory('Actions')">Actions</button>
-    <button onclick="filterCategory('Places')">Places</button>
-    <button onclick="filterCategory('Activities')">Activities</button>
-    <button onclick="filterCategory('Behaviours')">Behaviours</button>
-    <button onclick="filterCategory('Subjects')">Subjects</button>
-  </div>
+  <div id="categoryButtons" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+  <button onclick="filterCategory('all')">All</button>
+  <!-- Category buttons will be dynamically added here -->
+</div>
 
   <!-- The categorized sample gallery -->
   <div id="sampleImages">
@@ -893,7 +886,25 @@
   renderPreview();
   updateCardCount();
 
-  </script>
+// Build category filter buttons dynamically
+function buildCategoryButtons() {
+  const buttonContainer = document.getElementById('categoryButtons');
+  symbolCategories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.textContent = cat;
+    btn.onclick = () => filterCategory(cat);
+    buttonContainer.appendChild(btn);
+  });
+}
 
+// Call it during initialization
+buildCategoryButtons();
+
+  </script>
+<!-- buy-me-a-coffee (optional) -->
+  <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
+    data-name="bmc-button" data-slug="nilltronic" data-color="#FFDD00" data-emoji="" data-font="Cookie"
+    data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" >
+  </script>
 </body>
 </html>
