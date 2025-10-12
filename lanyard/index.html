@@ -128,17 +128,10 @@
 
   <h3>Sample Images</h3>
 
-  <!-- Category controls (filter / collapse) -->
-  <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
-    <button onclick="filterCategory('all')">All</button>
-    <button onclick="filterCategory('Colors')">Colors</button>
-    <button onclick="filterCategory('Needs')">Needs</button>
-    <button onclick="filterCategory('Actions')">Actions</button>
-    <button onclick="filterCategory('Places')">Places</button>
-    <button onclick="filterCategory('Activities')">Activities</button>
-    <button onclick="filterCategory('Behaviours')">Behaviours</button>
-    <button onclick="filterCategory('Subjects')">Subjects</button>
-  </div>
+  <div id="categoryButtons" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+  <button onclick="filterCategory('all')">All</button>
+  <!-- Category buttons will be dynamically added here -->
+</div>
 
   <!-- The categorized sample gallery -->
   <div id="sampleImages">
@@ -802,6 +795,19 @@
   populateEditSampleGallery();
   renderPreview();
 
+  // Build category filter buttons dynamically
+function buildCategoryButtons() {
+  const buttonContainer = document.getElementById('categoryButtons');
+  symbolCategories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.textContent = cat;
+    btn.onclick = () => filterCategory(cat);
+    buttonContainer.appendChild(btn);
+  });
+}
+
+// Call it during initialization
+buildCategoryButtons();
   </script>
 
   <!-- buy-me-a-coffee (optional) -->
