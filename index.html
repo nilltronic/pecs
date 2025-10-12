@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta name="description" content="Free PECS communication tools for creating visual schedules, lanyards, and timetables. Perfect for educators, parents, and therapists.">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="shared/images/favicon.png" type="image/png">
   <title>Communication Tools Hub</title>
 
   <!-- 
@@ -70,6 +72,22 @@
       font-size: 0.9em;
       color: #777;
     }
+
+    .tool-image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 0.8em;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tool-link:hover .tool-image {
+  transform: scale(1.05);
+  transition: transform 0.2s ease;
+}
+
   </style>
 </head>
 <body>
@@ -79,27 +97,47 @@
   <p>Choose a tool below.</p>
 
   <!-- 🧩 TOOL LINKS -->
-  <div class="tools">
-    <a href="lanyard/" class="tool-link">
-      <div class="tool-title">PECS Lanyard Creator</div>
-      <div class="tool-description">
-        Design and print personalised lanyards using your own images or shared symbols.
-      </div>
-    </a>
 
-    <a href="now-and-next/" class="tool-link">
-      <div class="tool-title">Now and Next Lanyard</div>
-      <div class="tool-description">
-        Create printable visual timetables using your own images or shared symbols.
-      </div>
-    </a>
-    <a href="tabbed-timetable/" class="tool-link">
-      <div class="tool-title">Tabbed Lanyard Timetable</div>
-      <div class="tool-description">
-        Design and print personalised tabbed timetable lanyards using your own images or shared symbols.
-      </div>
-    </a>
+  <a href="lanyard/" class="tool-link">
+  <img src="shared/images/lanyard.png" alt="Lanyard Creator" class="tool-image">
+  <div class="tool-title">PECS Lanyard Creator</div>
+  <div class="tool-description">
+    Design and print personalised lanyards using your own images or shared symbols.
+    <ul style="text-align:left; font-size:0.85em; margin-top:0.5em; color:#666;">
+      <li>Drag to reorder cards</li>
+      <li>Customizable text colors</li>
+      <li>Optional stacking tabs</li>
+    </ul>
   </div>
+</a>
+
+<a href="now-and-next/" class="tool-link">
+  <img src="shared/images/now and next.png" alt="Lanyard Creator" class="tool-image">
+  <div class="tool-title">Now and Next Lanyard</div>
+  <div class="tool-description">
+    Create printable visual timetables using your own images or shared symbols.
+    <ul style="text-align:left; font-size:0.85em; margin-top:0.5em; color:#666;">
+      <li>At a glance now and next events</li>
+      <li>Customizable text colors</li>
+      <li>Add events to a printable PDF</li>
+    </ul>
+  </div>
+</a>
+
+<a href="tabbed-timetable/" class="tool-link">
+  <img src="shared/images/tabbed.png" alt="Lanyard Creator" class="tool-image">
+  <div class="tool-title">Tabbed Lanyard Timetable</div>
+  <div class="tool-description">
+    Design and print personalised tabbed timetable lanyards.
+    <ul style="text-align:left; font-size:0.85em; margin-top:0.5em; color:#666;">
+      <li>Drag to reorder cards</li>
+      <li>Customizable text colors</li>
+      <li>Tab markers for quick access</li>
+    </ul>
+  </div>
+</a>
+
+   
 
   <!-- 
     🧱 ADDING MORE TOOLS IN THE FUTURE
@@ -119,9 +157,13 @@
   -->
 
   <footer>
-    <!-- buy-me-a-coffee (optional) -->
+  <!-- buy-me-a-coffee -->
   <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
     data-name="bmc-button" data-slug="nilltronic" data-color="#FFDD00" data-emoji="" data-font="Cookie"
     data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" >
   </script>
-    © 2025 Communication Tools | Built by Ian Davison
+  <br>
+  © 2025 Communication Tools | Built by Ian Davison
+</footer>
+</body>
+</html>
