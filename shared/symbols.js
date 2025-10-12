@@ -42,7 +42,7 @@
   { name:"Cafeteria", src:"../shared/images/cafeteria.png", keywords:["cafeteria","lunch","dinner"], category:"Places" },
 
   // Activities
-  { name:"PE", src:"../shared/images/pe.png", keywords:["pe","sport","sports"], category:"Activities" },
+  { name:"Register", src:"../shared/images/register.png", keywords:["register","registration"], category:"Activities" },
   { name:"Swimming", src:"../shared/images/swimming.png", keywords:["swimming","pool"], category:"Activities" },
   { name:"Trampoline", src:"../shared/images/trampoline.png", keywords:["trampoline","jump"], category:"Activities" },
   { name:"Swing", src:"../shared/images/swing.png", keywords:["swing","swinging"], category:"Activities" },
@@ -64,7 +64,7 @@
 
   // Subjects
   { name:"Maths", src:"../shared/images/maths.png", keywords:["maths"], category:"Subjects" },
-
+  { name:"PE", src:"../shared/images/pe.png", keywords:["pe","sport","sports"], category:"Subjects" },
   // Time
   { name:"Now", src:"../shared/images/now.png", keywords:["now"], category:"Time" },
   { name:"Next", src:"../shared/images/next.png", keywords:["next","later"], category:"Time" },
