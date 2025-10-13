@@ -32,6 +32,7 @@
   { name:"Look", src:"../shared/images/look.png", keywords:["look"], category:"Actions" },
   { name:"Shoes On", src:"../shared/images/shoes on.png", keywords:["shoes","on"], category:"Actions" },
   { name:"Shoes Off", src:"../shared/images/shoes off.png", keywords:["shoes","off"], category:"Actions" },
+  { name:"Breathe", src:"../shared/images/breathe.png", keywords:["breathe","breath"], category:"Actions" },  
 
   // Places
   { name:"Outside", src:"../shared/images/outside.png", keywords:["outside","play out"], category:"Places" },
@@ -74,4 +75,5 @@
 
 // Define available categories (extracted from symbolLibrary)
 window.symbolCategories = [...new Set(window.symbolLibrary.map(s => s.category || 'Uncategorized'))];
+
 
