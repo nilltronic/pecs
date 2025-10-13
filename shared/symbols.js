@@ -65,6 +65,7 @@
   // Subjects
   { name:"Maths", src:"../shared/images/maths.png", keywords:["maths"], category:"Subjects" },
   { name:"PE", src:"../shared/images/pe.png", keywords:["pe","sport","sports"], category:"Subjects" },
+  { name:"Art", src:"../shared/images/art.png", keywords:["paint","draw","art"], category:"Subjects" },  
   // Time
   { name:"Now", src:"../shared/images/now.png", keywords:["now"], category:"Time" },
   { name:"Next", src:"../shared/images/next.png", keywords:["next","later"], category:"Time" },
@@ -73,3 +74,4 @@
 
 // Define available categories (extracted from symbolLibrary)
 window.symbolCategories = [...new Set(window.symbolLibrary.map(s => s.category || 'Uncategorized'))];
+
