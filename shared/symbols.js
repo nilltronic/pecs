@@ -72,10 +72,21 @@
   { name:"Now", src:"../shared/images/now.png", keywords:["now"], category:"Time" },
   { name:"Next", src:"../shared/images/next.png", keywords:["next","later"], category:"Time" },
 
+  //Nouns
+  { name:"ABC", src:"../shared/images/abc.png", keywords:["abc","alphabet","spell"], category:"Nouns" },
+  { name:"Yoga", src:"../shared/images/yoga.png", keywords:["yoga"], category:"Nouns" },
+
+  //Verbs
+  { name:"Dance", src:"../shared/images/dance.png", keywords:["dance"], category:"Verbs" },
+  { name:"Fun", src:"../shared/images/fun.png", keywords:["fun"], category:"Verbs" },
+  { name:"Sleep", src:"../shared/images/sleep.png", keywords:["sleep"], category:"Verbs" },
+
+  //Emotions
+    { name:"Frustrated", src:"../shared/images/frustrated.png", keywords:["frustrated"], category:"Emotions" },
+
 ];
 
 // Define available categories (extracted from symbolLibrary)
 window.symbolCategories = [...new Set(window.symbolLibrary.map(s => s.category || 'Uncategorized'))];
-
 
 
