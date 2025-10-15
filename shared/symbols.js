@@ -78,8 +78,10 @@
 
   //Verbs
   { name:"Dance", src:"../shared/images/dance.png", keywords:["dance"], category:"Verbs" },
-  { name:"Fun", src:"../shared/images/fun.png", keywords:["fun"], category:"Verbs" },
   { name:"Sleep", src:"../shared/images/sleep.png", keywords:["sleep"], category:"Verbs" },
+
+  //adjectives
+    { name:"Fun", src:"../shared/images/fun.png", keywords:["fun"], category:"Adjectives" },
 
   //Emotions
     { name:"Frustrated", src:"../shared/images/frustrated.png", keywords:["frustrated"], category:"Emotions" },
