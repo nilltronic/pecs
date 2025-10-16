@@ -34,6 +34,9 @@
   { name:"Shoes Off", src:"../shared/images/shoes off.png", keywords:["shoes","off"], category:"Actions" },
   { name:"Breathe", src:"../shared/images/breathe.png", keywords:["breathe","breath"], category:"Actions" },
   { name:"Count", src:"../shared/images/count.png", keywords:["count","counting"], category:"Actions" },  
+  { name:"Write", src:"../shared/images/write.png", keywords:["write"], category:"Actions" },  
+  { name:"Organize", src:"../shared/images/organize.png", keywords:["organize","organise"], category:"Actions" },  
+  { name:"Read", src:"../shared/images/read.png", keywords:["read"], category:"Actions" },  
 
   // Places
   { name:"Outside", src:"../shared/images/outside.png", keywords:["outside","play out"], category:"Places" },
@@ -68,17 +71,26 @@
   { name:"Maths", src:"../shared/images/maths.png", keywords:["maths"], category:"Subjects" },
   { name:"PE", src:"../shared/images/pe.png", keywords:["pe","sport","sports"], category:"Subjects" },
   { name:"Art", src:"../shared/images/art.png", keywords:["paint","draw","art"], category:"Subjects" },  
+  
   // Time
   { name:"Now", src:"../shared/images/now.png", keywords:["now"], category:"Time" },
   { name:"Next", src:"../shared/images/next.png", keywords:["next","later"], category:"Time" },
+  { name:"Time For", src:"../shared/images/time for.png", keywords:["time for","time"], category:"Time" },
 
   //Nouns
   { name:"ABC", src:"../shared/images/abc.png", keywords:["abc","alphabet","spell"], category:"Nouns" },
   { name:"Yoga", src:"../shared/images/yoga.png", keywords:["yoga"], category:"Nouns" },
+  { name:"Nature", src:"../shared/images/nature.png", keywords:["nature"], category:"Nouns" },
+  { name:"Glitter", src:"../shared/images/glitter.png", keywords:["glitter"], category:"Nouns" },
 
   //Verbs
   { name:"Dance", src:"../shared/images/dance.png", keywords:["dance"], category:"Verbs" },
   { name:"Sleep", src:"../shared/images/sleep.png", keywords:["sleep"], category:"Verbs" },
+  { name:"Kick", src:"../shared/images/kick.png", keywords:["kick"], category:"Verbs" },
+  { name:"Joke", src:"../shared/images/joke.png", keywords:["joke","laugh"], category:"Verbs" },
+  { name:"Hug", src:"../shared/images/hug.png", keywords:["hug"], category:"Verbs" },
+  { name:"Imagine", src:"../shared/images/imagine.png", keywords:["imagine"], category:"Verbs" },
+  { name:"Share", src:"../shared/images/share.png", keywords:["share"], category:"Verbs" },
 
   //adjectives
     { name:"Fun", src:"../shared/images/fun.png", keywords:["fun"], category:"Adjectives" },
