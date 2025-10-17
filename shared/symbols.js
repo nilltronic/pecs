@@ -71,7 +71,12 @@
   { name:"Maths", src:"../shared/images/maths.png", keywords:["maths"], category:"Subjects" },
   { name:"PE", src:"../shared/images/pe.png", keywords:["pe","sport","sports"], category:"Subjects" },
   { name:"Art", src:"../shared/images/art.png", keywords:["paint","draw","art"], category:"Subjects" },  
-  
+  { name:"English", src:"../shared/images/english.png", keywords:["english","grammer","spelling"], category:"Subjects" },  
+  { name:"Geography", src:"../shared/images/geography.png", keywords:["geography","world","globe","earth"], category:"Subjects" },  
+  { name:"ICT", src:"../shared/images/ict.png", keywords:["ict","computer","computing"], category:"Subjects" },  
+  { name:"Music", src:"../shared/images/music.png", keywords:["music","sound","song"], category:"Subjects" },  
+  { name:"Science", src:"../shared/images/science.png", keywords:["science","biology"], category:"Subjects" },  
+
   // Time
   { name:"Now", src:"../shared/images/now.png", keywords:["now"], category:"Time" },
   { name:"Next", src:"../shared/images/next.png", keywords:["next","later"], category:"Time" },
@@ -82,6 +87,8 @@
   { name:"Yoga", src:"../shared/images/yoga.png", keywords:["yoga"], category:"Nouns" },
   { name:"Nature", src:"../shared/images/nature.png", keywords:["nature"], category:"Nouns" },
   { name:"Glitter", src:"../shared/images/glitter.png", keywords:["glitter"], category:"Nouns" },
+  { name:"Bubbles", src:"../shared/images/bubbles.png", keywords:["bubbles","blow bubbles"], category:"Nouns" },
+  { name:"Sport", src:"../shared/images/sports.png", keywords:["sport","sports"], category:"Nouns" },
 
   //Verbs
   { name:"Dance", src:"../shared/images/dance.png", keywords:["dance"], category:"Verbs" },
