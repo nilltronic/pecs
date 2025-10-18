@@ -1,1 +1,880 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>PECS Communication Board Creator</title>
+
+  <!-- external libs --> 
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.js"></script>
+
+  <style>
+    .home-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 1000;
+  transition: 0.3s;
+}
+.home-btn:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+}
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; }
+    input, button, select { margin: 6px 0; padding: 8px; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+    /* Previews and cards */
+    #preview, #tempPreview { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    .card { border:1px solid #ccc; border-radius:6px; width:120px; padding:6px; text-align:center; background:#fafafa; box-sizing:border-box; }
+    .card img { max-width:100%; height:auto; display:block; margin:0 auto 6px; }
+
+    /* Sample images (category gallery) */
+    .categoryHeader {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:6px 0;
+      margin-top:8px;
+    }
+    .categoryHeader button { font-size:13px; padding:4px 8px; }
+
+    #sampleImages { margin-top:10px; }
+    .sample-row { display:flex; flex-wrap:wrap; gap:8px; }
+
+    #sampleImages img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      background: white;
+      padding: 4px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    #cardColor { width: 40px; height: 40px; padding: 0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; }
+
+    /* SortableJS visual helpers */
+    .sortable-ghost { opacity: 0.4; }
+    .sortable-chosen { border: 2px dashed #888; }
+    .sortable-drag { transform: rotate(3deg); }
+
+    /* Suggestions dropdown */
+    .inputWrap { position:relative; display:inline-block; }
+    #suggestions, #editSuggestions {
+      position:absolute;
+      top: calc(100% + 6px);
+      left:0;
+      width: 320px;
+      background:#fff;
+      border:1px solid #ccc;
+      border-radius:4px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.12);
+      max-height:220px;
+      overflow:auto;
+      z-index:2000;
+      display:none;
+    }
+    #suggestions .item, #editSuggestions .item { display:flex; align-items:center; gap:8px; padding:6px; cursor:pointer; }
+    #suggestions .item:hover, #editSuggestions .item:hover { background:#f3f3f3; }
+    #suggestions img, #editSuggestions img { width:36px; height:36px; object-fit:contain; border:1px solid #eee; border-radius:3px; }
+    #suggestions .label, #editSuggestions .label { font-size:14px; }
+
+    /* Modal styling */
+    .modal { display:none; position:fixed; z-index:3000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; }
+    .modal-content { background:#fff; padding:20px; border-radius:8px; width:340px; box-shadow:0 2px 8px rgba(0,0,0,0.3); }
+    .modal-content h3 { margin-top:0; }
+    .small-thumb { width:48px; height:48px; object-fit:contain; border:1px solid #ccc; margin:2px; cursor:pointer; }
+
+    /* small helpers */
+    .muted { color: #666; font-size: 13px; margin-left: 8px; }
+    .section { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+<a href="../" class="home-btn">🏠 Home</a>
+
+  <h1>PECS Communication Board Creator</h1>
+  <p class="muted">Create customizable communication boards with symbols and labels.</p>
+
+  <!-- Board Settings Section -->
+  <div class="section">
+    <h3 style="margin-top:0;">Board Settings</h3>
+    <div class="row">
+      <label for="boardTitle">Board Title:</label>
+      <input type="text" id="boardTitle" placeholder="e.g., My Communication Board" style="width:300px;">
+      
+      <label for="titleSize">Title Size:</label>
+      <select id="titleSize">
+        <option value="small">Small</option>
+        <option value="medium" selected>Medium</option>
+        <option value="large">Large</option>
+      </select>
+
+      <label for="orientation">Orientation:</label>
+      <select id="orientation">
+        <option value="portrait" selected>Portrait</option>
+        <option value="landscape">Landscape</option>
+      </select>
+
+      <label for="symbolSize">Symbol Size:</label>
+      <select id="symbolSize">
+        <option value="40">Small (40mm)</option>
+        <option value="60" selected>Medium (60mm)</option>
+        <option value="80">Large (80mm)</option>
+        <option value="100">Extra Large (100mm)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Add Symbol Section -->
+  <div class="section">
+    <h3 style="margin-top:0;">Add Symbol</h3>
+    <div class="row">
+      <div class="inputWrap">
+        <input type="text" id="cardText" placeholder="Enter symbol label" style="width:320px;">
+        <div id="suggestions" aria-hidden="true"></div>
+      </div>
+
+      <input type="button" value="Upload Image" onclick="document.getElementById('cardImage').click();" />
+      <input type="file" style="display:none;" id="cardImage" name="cardImage" accept="image/*"/>
+
+      <button onclick="addCard()">Add Symbol</button>
+
+      <label for="cardColor">Text color:</label>
+      <input type="color" id="cardColor" value="#000000">
+
+      <label>
+        <input type="checkbox" id="showText" checked>
+        Show text labels
+      </label>
+    </div>
+
+    <h4>Symbol Preview</h4>
+    <div id="tempPreview"></div>
+  </div>
+
+  <!-- Added Symbols Section -->
+  <div class="section">
+    <h3 style="margin-top:0;">Added Symbols (<span id="cardCount">0</span>) - Drag to reorder</h3>
+    <div style="margin-bottom: 10px;">
+      <button onclick="generatePDF()">Generate PDF</button>
+      <button onclick="clearCards()">Clear All</button>
+    </div>
+    <div id="preview"></div>
+  </div>
+
+  <!-- Sample Images Section -->
+  <h3>Sample Images</h3>
+  <div id="categoryButtons" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+    <button onclick="filterCategory('all')">All</button>
+    <!-- Category buttons will be dynamically added here -->
+  </div>
+
+  <div id="sampleImages">
+    <!-- Each category container created dynamically by JS from symbolLibrary -->
+  </div>
+
+  <!-- Edit modal -->
+  <div id="editModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <h3>Edit Symbol</h3>
+      <input type="text" id="editText" placeholder="Symbol label" style="width:100%;">
+      <div id="editSuggestions" style="display:none;"></div>
+
+      <label>Text color:</label>
+      <input type="color" id="editColor" value="#000000" style="width:48px;"><br>
+
+      <input type="button" value="Choose Image" onclick="document.getElementById('editImage').click();" />
+      <input type="file" style="display:none;" id="editImage" name="editImage" accept="image/*"/>
+
+      <div id="editSampleImages" style="margin-top:10px; display:flex; flex-wrap:wrap; gap:6px; max-height:120px; overflow:auto;"></div>
+
+      <div style="margin-top:12px; text-align:right;">
+        <button onclick="saveEdit()">Save</button>
+        <button onclick="closeEditModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+<script src="../shared/symbols.js"></script>
+
+  <script>
+  // -------------------------
+  // Application state
+  // -------------------------
+  const cards = []; // { text, color, image, showText }
+  let selectedSampleImage = null;
+  let tempPreviewImage = null;
+  let editingIndex = null;
+
+  // -------------------------
+  // UI references
+  // -------------------------
+  const cardTextInput = document.getElementById('cardText');
+  const suggestionsEl = document.getElementById('suggestions');
+  const tempPreviewEl = document.getElementById('tempPreview');
+  const previewEl = document.getElementById('preview');
+  const sampleImagesContainer = document.getElementById('sampleImages');
+  const cardCountEl = document.getElementById('cardCount');
+
+  // Edit modal refs
+  const editModal = document.getElementById('editModal');
+  const editText = document.getElementById('editText');
+  const editColor = document.getElementById('editColor');
+  const editImage = document.getElementById('editImage');
+  const editSampleImagesEl = document.getElementById('editSampleImages');
+  const editSuggestionsEl = document.getElementById('editSuggestions');
+
+  // -------------------------
+  // Build categories UI from library
+  // -------------------------
+  function buildCategoryGallery() {
+    const cats = [...new Set(symbolLibrary.map(s => s.category || 'Uncategorized'))];
+    sampleImagesContainer.innerHTML = '';
+    cats.forEach(cat => {
+      const header = document.createElement('div');
+      header.className = 'categoryHeader';
+      header.innerHTML = `
+        <strong>${cat}</strong>
+        <div>
+          <button type="button" data-action="toggle" data-cat="${cat}">Collapse</button>
+          <button type="button" data-action="showOnly" data-cat="${cat}" style="margin-left:6px;">Show only</button>
+        </div>
+      `;
+      sampleImagesContainer.appendChild(header);
+
+      const row = document.createElement('div');
+      row.className = 'sample-row';
+      row.dataset.category = cat;
+      symbolLibrary.filter(s => (s.category||'Uncategorized') === cat).forEach(s => {
+        const img = document.createElement('img');
+        img.src = s.src;
+        img.alt = s.name;
+        img.title = s.name;
+        img.dataset.name = s.name;
+        img.dataset.src = s.src;
+        img.dataset.category = cat;
+        img.addEventListener('click', () => {
+          selectedSampleImage = s.src;
+          tempPreviewImage = s.src;
+          highlightSample(s.src);
+          updateTempPreview();
+        });
+        row.appendChild(img);
+      });
+      sampleImagesContainer.appendChild(row);
+
+      header.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.dataset.action;
+          const c = btn.dataset.cat;
+          if (action === 'toggle') {
+            if (row.style.display === 'none') {
+              row.style.display = 'flex';
+              btn.textContent = 'Collapse';
+            } else {
+              row.style.display = 'none';
+              btn.textContent = 'Expand';
+            }
+          } else if (action === 'showOnly') {
+            sampleImagesContainer.querySelectorAll('.sample-row').forEach(r => {
+              r.style.display = (r.dataset.category === c) ? 'flex' : 'none';
+            });
+            sampleImagesContainer.querySelectorAll('.categoryHeader button[data-action="toggle"]').forEach(b => {
+              const catb = b.dataset.cat;
+              const rowb = sampleImagesContainer.querySelector(`.sample-row[data-category="${catb}"]`);
+              b.textContent = (rowb.style.display === 'none') ? 'Expand' : 'Collapse';
+            });
+          }
+        });
+      });
+    });
+
+    const reset = document.createElement('div');
+    reset.style.marginTop = '8px';
+    reset.innerHTML = `<button onclick="resetCategoryView()">Show all categories</button> <span class="muted">(or use category buttons above)</span>`;
+    sampleImagesContainer.appendChild(reset);
+  }
+
+  function resetCategoryView(){
+    sampleImagesContainer.querySelectorAll('.sample-row').forEach(r => r.style.display = 'flex');
+    sampleImagesContainer.querySelectorAll('.categoryHeader button[data-action="toggle"]').forEach(b => b.textContent = 'Collapse');
+  }
+
+  function populateEditSampleGallery(){
+    editSampleImagesEl.innerHTML = '';
+    symbolLibrary.forEach(s => {
+      const thumb = document.createElement('img');
+      thumb.className = 'small-thumb';
+      thumb.src = s.src;
+      thumb.title = s.name;
+      thumb.dataset.src = s.src;
+      thumb.addEventListener('click', () => {
+        editImage.dataset.sample = s.src;
+        editImage._uploadedData = null;
+        highlightEditSample(s.src);
+        updateEditModalPreview();
+      });
+      editSampleImagesEl.appendChild(thumb);
+    });
+  }
+
+  // Build category filter buttons dynamically
+  function buildCategoryButtons() {
+    const buttonContainer = document.getElementById('categoryButtons');
+    const cats = [...new Set(symbolLibrary.map(s => s.category || 'Uncategorized'))];
+    cats.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.textContent = cat;
+      btn.onclick = () => filterCategory(cat);
+      buttonContainer.appendChild(btn);
+    });
+  }
+
+  // -------------------------
+  // Suggestions (add-mode)
+  // -------------------------
+  cardTextInput.addEventListener('input', onTextInput);
+  cardTextInput.addEventListener('focus', onTextInput);
+  document.addEventListener('click', (e) => {
+    if (!suggestionsEl.contains(e.target) && e.target !== cardTextInput) hideSuggestions();
+  });
+
+  function onTextInput() {
+    const q = (cardTextInput.value || '').toLowerCase().trim();
+    if (!q) { hideSuggestions(); updateTempPreview(); return; }
+
+    const matches = symbolLibrary.filter(item => {
+      if (item.name && item.name.toLowerCase().includes(q)) return true;
+      if (item.keywords && item.keywords.some(k => k.toLowerCase().includes(q))) return true;
+      return false;
+    });
+
+    if (matches.length === 0) { hideSuggestions(); updateTempPreview(); return; }
+
+    suggestionsEl.innerHTML = '';
+    matches.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `<img src="${item.src}" alt="${escapeHtml(item.name)}"><div class="label">${escapeHtml(item.name)} <div style="font-size:12px;color:#666">${escapeHtml(item.category||'')}</div></div>`;
+      row.onclick = () => {
+        selectedSampleImage = item.src;
+        tempPreviewImage = item.src;
+        highlightSample(item.src);
+        updateTempPreview();
+        hideSuggestions();
+        if (!cardTextInput.value.trim()) cardTextInput.value = item.name;
+        cardTextInput.focus();
+      };
+      suggestionsEl.appendChild(row);
+    });
+    showSuggestions();
+  }
+  
+  function showSuggestions(){ suggestionsEl.style.display = 'block'; }
+  function hideSuggestions(){ suggestionsEl.style.display = 'none'; suggestionsEl.innerHTML = ''; }
+
+  function highlightSample(src) {
+    sampleImagesContainer.querySelectorAll('img').forEach(img => {
+      img.style.borderColor = (img.src === src) ? '#007bff' : '#ccc';
+    });
+  }
+
+  document.getElementById('cardImage').addEventListener('change', function() {
+    const f = this.files && this.files[0];
+    if (!f) return;
+    selectedSampleImage = null;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      tempPreviewImage = reader.result;
+      highlightSample(null);
+      updateTempPreview();
+    };
+    reader.readAsDataURL(f);
+  });
+
+  function updateTempPreview(){
+    const text = document.getElementById('cardText').value.trim();
+    const color = document.getElementById('cardColor').value;
+    const showText = document.getElementById('showText').checked;
+    tempPreviewEl.innerHTML = '';
+    if (tempPreviewImage || text) {
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `
+        <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
+          ${ tempPreviewImage ? `<img src="${tempPreviewImage}" alt="preview" style="max-width:100%; max-height:100%;">` : '' }
+        </div>
+        ${showText ? `<div style="color:${color};"><strong>${escapeHtml(text)}</strong></div>` : ''}
+      `;
+      tempPreviewEl.appendChild(d);
+    }
+  }
+
+  function updateCardCount() {
+    cardCountEl.textContent = cards.length;
+  }
+
+  // -------------------------
+  // Add / Edit / Render cards
+  // -------------------------
+  function addCard() {
+    const text = document.getElementById('cardText').value.trim();
+    const color = document.getElementById('cardColor').value;
+    const showText = document.getElementById('showText').checked;
+    const fileInput = document.getElementById('cardImage');
+
+    if (!text) { alert('Please enter symbol label.'); return; }
+
+    if (fileInput.files.length > 0) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        cards.push({ text, color, image: reader.result, showText });
+        resetInputs(); renderPreview(); updateCardCount();
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    } else if (selectedSampleImage) {
+      cards.push({ text, color, image: selectedSampleImage, showText });
+      resetInputs(); renderPreview(); updateCardCount();
+    } else {
+      alert('Please choose an image (upload or sample).');
+    }
+  }
+
+  function resetInputs(){
+    document.getElementById('cardText').value = '';
+    document.getElementById('cardImage').value = '';
+    selectedSampleImage = null;
+    tempPreviewImage = null;
+    tempPreviewEl.innerHTML = '';
+    highlightSample(null);
+    hideSuggestions();
+  }
+
+  function renderPreview(){
+    previewEl.innerHTML = '';
+    cards.forEach((c,i) => {
+      const d = document.createElement('div');
+      d.className = 'card';
+      d.innerHTML = `
+        <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
+          <img src="${c.image}" alt="img" style="max-width:100%; max-height:100%;">
+        </div>
+        ${c.showText ? `<div style="color:${c.color};"><strong>${escapeHtml(c.text)}</strong></div>` : ''}
+        <div style="margin-top:6px;">
+          <button onclick="openEdit(${i})">Edit</button>
+          <button onclick="removeCard(${i})">Remove</button>
+        </div>
+      `;
+      previewEl.appendChild(d);
+    });
+  }
+
+  function removeCard(i){ cards.splice(i,1); renderPreview(); updateCardCount(); }
+  function clearCards(){ if (confirm('Clear all symbols?')){ cards.length = 0; renderPreview(); updateCardCount(); } }
+
+  new Sortable(previewEl, {
+    animation: 150,
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
+    onEnd: function(evt) {
+      const [moved] = cards.splice(evt.oldIndex, 1);
+      cards.splice(evt.newIndex, 0, moved);
+      renderPreview();
+    }
+  });
+
+  // -------------------------
+  // Edit modal logic
+  // -------------------------
+  populateEditSampleGallery();
+  editText.addEventListener('input', onEditTextInput);
+  editText.addEventListener('focus', onEditTextInput);
+  document.addEventListener('click', (e) => {
+    if (!editSuggestionsEl.contains(e.target) && e.target !== editText) hideEditSuggestions();
+  });
+
+  function onEditTextInput(){
+    const q = (editText.value || '').toLowerCase().trim();
+    if (!q) { hideEditSuggestions(); return; }
+
+    const matches = symbolLibrary.filter(item => {
+      if (item.name && item.name.toLowerCase().includes(q)) return true;
+      if (item.keywords && item.keywords.some(k => k.toLowerCase().includes(q))) return true;
+      return false;
+    });
+
+    if (matches.length === 0) { hideEditSuggestions(); return; }
+
+    editSuggestionsEl.innerHTML = '';
+    matches.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `<img src="${item.src}" alt="${escapeHtml(item.name)}"><div class="label">${escapeHtml(item.name)}</div>`;
+      row.onclick = () => {
+        editImage.dataset.sample = item.src;
+        editImage._uploadedData = null;
+        highlightEditSample(item.src);
+        hideEditSuggestions();
+        if (!editText.value.trim()) editText.value = item.name;
+        updateEditModalPreview();
+      };
+      editSuggestionsEl.appendChild(row);
+    });
+    editSuggestionsEl.style.display = 'block';
+  }
+  
+  function hideEditSuggestions(){ editSuggestionsEl.style.display = 'none'; editSuggestionsEl.innerHTML = ''; }
+
+  function openEdit(i) {
+    editingIndex = i;
+    const c = cards[i];
+    editText.value = c.text;
+    editColor.value = c.color || '#000000';
+    editImage.value = '';
+    editImage._uploadedData = null;
+    editImage.dataset.sample = (c.image && !c.image.startsWith('data:')) ? c.image : '';
+    highlightEditSample(editImage.dataset.sample || '');
+    updateEditModalPreview();
+    editModal.style.display = 'flex';
+    editModal.setAttribute('aria-hidden', 'false');
+  }
+
+  editImage.addEventListener('change', () => {
+    if (editImage.files.length > 0) {
+      editImage.dataset.sample = '';
+      highlightEditSample(null);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        editImage._uploadedData = e.target.result;
+        updateEditModalPreview();
+      };
+      reader.readAsDataURL(editImage.files[0]);
+    }
+  });
+
+  function highlightEditSample(src){
+    editSampleImagesEl.querySelectorAll('img').forEach(el => {
+      el.style.borderColor = (el.src === src) ? '#007bff' : '#ccc';
+    });
+  }
+
+  function updateEditModalPreview(){
+    const text = editText.value.trim();
+    const color = editColor.value;
+    let imgSrc = editImage._uploadedData || editImage.dataset.sample || '';
+    if (!imgSrc && editingIndex !== null && cards[editingIndex]) imgSrc = cards[editingIndex].image || '';
+    const existing = document.getElementById('modalPreview');
+    if (existing) existing.remove();
+    const previewBox = document.createElement('div');
+    previewBox.className = 'card';
+    previewBox.id = 'modalPreview';
+    previewBox.innerHTML = `
+      <div style="width:100px; height:80px; display:flex; align-items:center; justify-content:center; margin:0 auto 6px;">
+        ${ imgSrc ? `<img src="${imgSrc}" style="max-width:100%; max-height:100%;">` : '' }
+      </div>
+      <div style="color:${color};"><strong>${escapeHtml(text)}</strong></div>
+    `;
+    editModal.querySelector('.modal-content').appendChild(previewBox);
+  }
+
+  function saveEdit(){
+    if (editingIndex === null) return;
+    const txt = editText.value.trim();
+    const col = editColor.value;
+    const c = cards[editingIndex];
+
+    if (editImage.files.length > 0 && editImage._uploadedData) {
+      c.image = editImage._uploadedData;
+    } else if (editImage.dataset.sample) {
+      c.image = editImage.dataset.sample;
+    }
+
+    c.text = txt;
+    c.color = col;
+    renderPreview();
+    closeEditModal();
+  }
+
+  function closeEditModal(){
+    editModal.style.display = 'none';
+    editModal.setAttribute('aria-hidden', 'true');
+    editingIndex = null;
+    editImage._uploadedData = null;
+    const prev = document.getElementById('modalPreview');
+    if (prev) prev.remove();
+  }
+
+  editModal.addEventListener('click', (e) => {
+    if (e.target === editModal) closeEditModal();
+  });
+
+  // -------------------------
+  // Image helpers for PDF
+  // -------------------------
+  function blobToDataURL(blob){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  async function ensureDataURL(src) {
+    if (!src) throw new Error('No image src');
+    if (typeof src === 'string' && src.startsWith('data:')) return src;
+
+    try {
+      const res = await fetch(src, { mode: 'cors' });
+      if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+      const blob = await res.blob();
+      return await blobToDataURL(blob);
+    } catch (err) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/png'));
+          } catch (e) {
+            reject(e);
+          }
+        };
+        img.onerror = () => reject(new Error('Could not load image: ' + src));
+        img.src = src;
+      });
+    }
+  }
+
+  function loadImageFromDataURL(dataURL) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Image load error'));
+      img.src = dataURL;
+    });
+  }
+
+  // -------------------------
+  // PDF generation with FIXED text inside boxes
+  // -------------------------
+  async function generatePDF() {
+    const loadingOverlay = document.createElement("div");
+    loadingOverlay.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:10000;";
+    loadingOverlay.innerHTML = '<div style="color:white;font-size:1.2em;">Generating PDF, please wait...</div>';
+    document.body.appendChild(loadingOverlay);
+
+    try {
+      if (cards.length === 0) {
+        alert("No symbols to generate.");
+        loadingOverlay.remove();
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const orientation = document.getElementById('orientation').value;
+      const doc = new jsPDF(orientation === 'landscape' ? 'l' : 'p', 'mm', 'a4');
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+
+      const symbolSizeMM = parseInt(document.getElementById('symbolSize').value);
+      const boardTitle = document.getElementById('boardTitle').value.trim();
+      const titleSize = document.getElementById('titleSize').value;
+      const margin = 10;
+      const symbolPadding = 5;
+      const cornerRadius = 5;
+
+      // Title font sizes
+      const titleSizes = { small: 14, medium: 18, large: 24 };
+      const titleFontSize = titleSizes[titleSize];
+
+      // IMPORTANT: Text font sizes scale with symbol size
+      const textFontSizes = { 40: 8, 60: 10, 80: 12, 100: 14 };
+      const textFontSize = textFontSizes[symbolSizeMM] || 10;
+
+      // Preload all images
+      const imagePromises = cards.map(async (c) => {
+        try {
+          const dataURL = await ensureDataURL(c.image);
+          const img = await loadImageFromDataURL(dataURL);
+          return { ...c, dataURL, img };
+        } catch (err) {
+          console.warn("Image load failed:", c.text, err);
+          return { ...c, dataURL: null, img: null };
+        }
+      });
+
+      const loadedCards = await Promise.all(imagePromises);
+
+      // Calculate starting Y position (with or without title)
+      let currentY = margin;
+      if (boardTitle) {
+        doc.setFontSize(titleFontSize);
+        doc.setFont('helvetica', 'bold');
+        doc.text(boardTitle, pageW / 2, currentY + 10, { align: 'center' });
+        currentY += titleFontSize + 10;
+      }
+
+      // Calculate how many symbols fit per row
+      const availableWidth = pageW - (2 * margin);
+      const symbolsPerRow = Math.floor(availableWidth / (symbolSizeMM + symbolPadding));
+      
+      let rowStartIndex = 0;
+      let y = currentY;
+
+      // Process symbols row by row for centering
+      while (rowStartIndex < loadedCards.length) {
+        // Check if we need a new page
+        if (y + symbolSizeMM + 20 > pageH - margin) {
+          doc.addPage();
+          y = margin;
+
+          // Re-add title on new page if it exists
+          if (boardTitle) {
+            doc.setFontSize(titleFontSize);
+            doc.setFont('helvetica', 'bold');
+            doc.text(boardTitle, pageW / 2, y + 10, { align: 'center' });
+            y += titleFontSize + 10;
+          }
+        }
+
+        // Calculate how many symbols in this row
+        const symbolsInThisRow = Math.min(symbolsPerRow, loadedCards.length - rowStartIndex);
+        
+        // Calculate total width of this row
+        const rowWidth = (symbolsInThisRow * symbolSizeMM) + ((symbolsInThisRow - 1) * symbolPadding);
+        
+        // Center the row
+        let x = (pageW - rowWidth) / 2;
+
+        // Draw symbols in this row
+        for (let i = 0; i < symbolsInThisRow; i++) {
+          const c = loadedCards[rowStartIndex + i];
+
+          // Draw symbol border with ROUNDED CORNERS
+          doc.setDrawColor(0);
+          doc.setLineWidth(0.5);
+          if (doc.roundedRect) {
+            doc.roundedRect(x, y, symbolSizeMM, symbolSizeMM, cornerRadius, cornerRadius, 'S');
+          } else {
+            doc.rect(x, y, symbolSizeMM, symbolSizeMM);
+          }
+
+          // Calculate space needed for text at bottom
+          const textSpace = c.showText ? 15 : 0;
+          const imgAvailableHeight = symbolSizeMM - textSpace - 8;
+
+          // Draw image (positioned at top, leaving space for text at bottom)
+          if (c.img && c.dataURL) {
+            const imgPadding = 4;
+            const imgMaxW = symbolSizeMM - (imgPadding * 2);
+            const imgMaxH = imgAvailableHeight;
+            const aspect = c.img.naturalWidth / c.img.naturalHeight;
+            let imgW = imgMaxW, imgH = imgMaxH;
+            if (imgW / imgH > aspect) imgW = imgH * aspect;
+            else imgH = imgW / aspect;
+
+            const imgX = x + (symbolSizeMM - imgW) / 2;
+            const imgY = y + imgPadding;
+
+            let fmt = "PNG";
+            if (c.dataURL.startsWith("data:image/jpeg")) fmt = "JPEG";
+            else if (c.dataURL.startsWith("data:image/webp")) fmt = "WEBP";
+
+            doc.addImage(c.dataURL, fmt, imgX, imgY, imgW, imgH);
+          }
+
+          // Draw text INSIDE box at bottom center
+          if (c.showText && c.text) {
+            doc.setFontSize(textFontSize);
+            doc.setTextColor(c.color || "#000000");
+            const maxTextWidth = symbolSizeMM - 6;
+            const textLines = doc.splitTextToSize(c.text, maxTextWidth);
+            const textY = y + symbolSizeMM - 4;
+            doc.text(textLines, x + symbolSizeMM / 2, textY, { align: "center" });
+          }
+
+          // Move to next symbol position in row
+          x += symbolSizeMM + symbolPadding;
+        }
+
+        // Move to next row
+        y += symbolSizeMM + symbolPadding;
+        rowStartIndex += symbolsInThisRow;
+      }
+
+      doc.save("communication-board.pdf");
+      
+      loadingOverlay.innerHTML = '<div style="color:white;font-size:1.2em;">✅ PDF generated successfully!</div>';
+      setTimeout(() => loadingOverlay.remove(), 1500);
+      
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      loadingOverlay.remove();
+      alert("Failed to generate PDF: " + error.message + "\n\nPlease check the browser console for details.");
+    }
+  }
+
+  // -------------------------
+  // Utilities & init
+  // -------------------------
+  function escapeHtml(s) {
+    if (s === undefined || s === null) return '';
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+  }
+
+  function filterCategory(cat) {
+    if (cat === 'all') {
+      resetCategoryView();
+      return;
+    }
+    sampleImagesContainer.querySelectorAll('.sample-row').forEach(r => {
+      r.style.display = (r.dataset.category === cat) ? 'flex' : 'none';
+    });
+  }
+
+  // Expose functions to global scope
+  window.filterCategory = filterCategory;
+  window.addCard = addCard;
+  window.generatePDF = generatePDF;
+  window.clearCards = clearCards;
+  window.openEdit = openEdit;
+  window.removeCard = removeCard;
+  window.saveEdit = saveEdit;
+  window.closeEditModal = closeEditModal;
+  window.resetCategoryView = resetCategoryView;
+
+  // Initialize
+  buildCategoryGallery();
+  buildCategoryButtons();
+  populateEditSampleGallery();
+  renderPreview();
+  updateCardCount();
+
+  </script>
+
+  <!-- buy-me-a-coffee (optional) -->
+  <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
+    data-name="bmc-button" data-slug="nilltronic" data-color="#FFDD00" data-emoji="" data-font="Cookie"
+    data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" >
+  </script>
+
+</body>
+</html>
