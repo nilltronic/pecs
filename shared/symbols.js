@@ -104,6 +104,17 @@
 
   //Emotions
     { name:"Frustrated", src:"../shared/images/frustrated.png", keywords:["frustrated"], category:"Emotions" },
+    { name:"Angry", src:"../shared/images/angry.png", keywords:["angry"], category:"Emotions" },
+    { name:"Excited", src:"../shared/images/excited.png", keywords:["excited"], category:"Emotions" },
+    { name:"Feeling", src:"../shared/images/feeling.png", keywords:["feeling"], category:"Emotions" },
+    { name:"Happy", src:"../shared/images/happy.png", keywords:["happy"], category:"Emotions" },
+    { name:"OK", src:"../shared/images/ok.png", keywords:["ok"], category:"Emotions" },
+    { name:"Sad", src:"../shared/images/sad.png", keywords:["sad"], category:"Emotions" },
+    { name:"Scared", src:"../shared/images/scared.png", keywords:["scared"], category:"Emotions" },
+    { name:"Thirsty", src:"../shared/images/thirsty.png", keywords:["thirsty"], category:"Emotions" },
+    { name:"Tired", src:"../shared/images/tired.png", keywords:["tired"], category:"Emotions" },
+    { name:"Unsure", src:"../shared/images/unsure.png", keywords:["unsure"], category:"Emotions" },
+    { name:"Worried", src:"../shared/images/worried.png", keywords:["worried"], category:"Emotions" },
 
 ];
 
