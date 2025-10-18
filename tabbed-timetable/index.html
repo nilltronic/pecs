@@ -13,6 +13,26 @@
     input, button { margin: 6px 0; padding: 8px; }
     .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
+.home-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 1000;
+  transition: 0.3s;
+}
+.home-btn:hover {
+  background: #0056b3;
+  transform: translateY(-2px);
+}
+
+
     /* Previews and cards */
     #preview, #tempPreview { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
     .card { border:1px solid #ccc; border-radius:6px; width:120px; padding:6px; text-align:center; background:#fafafa; box-sizing:border-box; }
@@ -83,6 +103,8 @@
 </head>
 <body>
 
+  <a href="../" class="home-btn">🏠 Home</a>
+  
   <h1>PECS Tabbed Lanyard Card Creator</h1>
   <p class="muted">Create up to 10 activity cards with side tabs for easy flipping through your daily schedule.</p>
 
