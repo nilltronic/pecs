@@ -9,17 +9,27 @@
 
 <url>
   <loc>https://nilltronic.github.io/pecs/</loc>
-  <lastmod>2025-10-11T06:22:33+00:00</lastmod>
+  <lastmod>2025-10-18T06:31:06+00:00</lastmod>
   <priority>1.00</priority>
 </url>
 <url>
   <loc>https://nilltronic.github.io/pecs/lanyard/</loc>
-  <lastmod>2025-10-11T06:22:33+00:00</lastmod>
+  <lastmod>2025-10-18T06:31:07+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://nilltronic.github.io/pecs/now-and-next/</loc>
-  <lastmod>2025-10-11T06:22:33+00:00</lastmod>
+  <lastmod>2025-10-18T06:31:07+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://nilltronic.github.io/pecs/tabbed-timetable/</loc>
+  <lastmod>2025-10-18T06:31:06+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://nilltronic.github.io/pecs/communication-board/</loc>
+  <lastmod>2025-10-18T06:31:06+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 
