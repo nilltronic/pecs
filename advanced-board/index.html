@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="description" content="Advanced drag-and-drop PECS communication board editor with visual canvas and precise positioning.">
+  <meta name="keywords" content="PECS, visual editor, communication board, AAC, drag and drop, autism">
+  <title>Advanced Communication Board Editor</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.js"></script>
+
+  <style>
+    * { box-sizing: border-box; }
+    body { 
+      font-family: Arial, sans-serif; 
+      margin: 0;
+      padding: 0;
+      background: #f0f0f0;
+      overflow: hidden;
+    }
+
+    .home-btn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #007bff;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      z-index: 10000;
+      font-size: 14px;
+    }
+    .home-btn:hover {
+      background: #0056b3;
+    }
+
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* Left sidebar */
+    .sidebar {
+      width: 300px;
+      background: white;
+      border-right: 2px solid #ccc;
+      overflow-y: auto;
+      padding: 15px;
+    }
+
+    .sidebar h3 {
+      margin-top: 0;
+      font-size: 16px;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 5px;
+    }
+
+    .control-group {
+      margin-bottom: 20px;
+    }
+
+    .control-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .control-group input,
+    .control-group select {
+      width: 100%;
+      padding: 6px;
+      font-size: 13px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .btn:hover {
+      background: #0056b3;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    /* Symbol library */
+    .symbol-library {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .library-symbol {
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      padding: 6px;
+      text-align: center;
+      cursor: pointer;
+      background: white;
+      transition: 0.2s;
+    }
+
+    .library-symbol:hover {
+      border-color: #007bff;
+      transform: scale(1.05);
+    }
+
+    .library-symbol img {
+      width: 100%;
+      height: 60px;
+      object-fit: contain;
+      margin-bottom: 4px;
+    }
+
+    .library-symbol-name {
+      font-size: 10px;
+      color: #666;
+    }
+
+    /* Main canvas area */
+    .canvas-container {
+      flex: 1;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: auto;
+    }
+
+    .canvas {
+      background: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      position: relative;
+      overflow: hidden;
+      margin: 20px auto;
+    }
+
+    .canvas.portrait {
+      width: 595px;
+      height: 842px;
+    }
+
+    .canvas.landscape {
+      width: 842px;
+      height: 595px;
+    }
+
+    /* Board title on canvas */
+    .board-title-display {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-weight: bold;
+      pointer-events: none;
+      z-index: 100;
+      color: #000;
+      display: none;
+    }
+
+    /* Symbol on canvas */
+    .canvas-symbol {
+      position: absolute;
+      border: 2px solid #007bff;
+      border-radius: 8px;
+      background: white;
+      cursor: move;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      user-select: none;
+    }
+
+    .canvas-symbol:hover {
+      border-color: #0056b3;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .canvas-symbol.selected {
+      border-color: #28a745;
+      border-width: 3px;
+    }
+
+    .canvas-symbol img {
+      max-width: 90%;
+      max-height: 70%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .canvas-symbol-text {
+      width: 100%;
+      text-align: center;
+      font-weight: bold;
+      margin-top: 4px;
+      padding: 2px;
+      border: 1px dashed transparent;
+      cursor: text;
+      word-wrap: break-word;
+      min-height: 20px;
+    }
+
+    .canvas-symbol-text:hover {
+      border-color: #ccc;
+      background: #f9f9f9;
+    }
+
+    .canvas-symbol-text:focus {
+      outline: none;
+      border-color: #007bff;
+      background: #fff;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .canvas-symbol:hover .delete-btn,
+    .canvas-symbol.selected .delete-btn {
+      display: block;
+    }
+
+    /* Color picker for selected symbol */
+    .symbol-color-picker {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      width: 30px;
+      height: 30px;
+      border: 2px solid #007bff;
+      border-radius: 4px;
+      cursor: pointer;
+      display: none;
+      padding: 0;
+    }
+
+    .canvas-symbol:hover .symbol-color-picker,
+    .canvas-symbol.selected .symbol-color-picker {
+      display: block;
+    }
+
+    /* Text box on canvas */
+    .canvas-textbox {
+      position: absolute;
+      border: 2px dashed #007bff;
+      background: rgba(255, 255, 255, 0.95);
+      cursor: move;
+      padding: 10px;
+      min-width: 150px;
+      min-height: 50px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      user-select: none;
+    }
+
+    .canvas-textbox:hover {
+      border-color: #0056b3;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+
+    .canvas-textbox.selected {
+      border-color: #28a745;
+      border-width: 3px;
+    }
+
+    .canvas-textbox-content {
+      width: 100%;
+      min-height: 30px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: text;
+      border: 1px dashed transparent;
+      padding: 4px;
+      word-wrap: break-word;
+    }
+
+    .canvas-textbox-content:hover {
+      border-color: #ccc;
+      background: #f9f9f9;
+    }
+
+    .canvas-textbox-content:focus {
+      outline: none;
+      border-color: #007bff;
+      background: #fff;
+    }
+
+    .canvas-textbox .delete-btn {
+      display: none;
+    }
+
+    .canvas-textbox:hover .delete-btn,
+    .canvas-textbox.selected .delete-btn {
+      display: block;
+    }
+
+    /* Color picker for text box */
+    .textbox-color-picker {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      width: 30px;
+      height: 30px;
+      border: 2px solid #007bff;
+      border-radius: 4px;
+      cursor: pointer;
+      display: none;
+      padding: 0;
+    }
+
+    .canvas-textbox:hover .textbox-color-picker,
+    .canvas-textbox.selected .textbox-color-picker {
+      display: block;
+    }
+
+    /* Font size adjuster for text box */
+    .textbox-size-adjuster {
+      position: absolute;
+      top: -10px;
+      left: 25px;
+      background: white;
+      border: 2px solid #007bff;
+      border-radius: 4px;
+      display: none;
+      padding: 2px 4px;
+      font-size: 11px;
+      font-weight: bold;
+      min-width: 60px;
+    }
+
+    .textbox-size-adjuster button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 2px 6px;
+      margin: 0 2px;
+      cursor: pointer;
+      border-radius: 3px;
+      font-size: 12px;
+    }
+
+    .textbox-size-adjuster button:hover {
+      background: #0056b3;
+    }
+
+    .textbox-size-adjuster span {
+      font-size: 10px;
+      margin: 0 4px;
+    }
+
+    .canvas-textbox:hover .textbox-size-adjuster,
+    .canvas-textbox.selected .textbox-size-adjuster {
+      display: block;
+    }
+
+    .info-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .category-filter {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .category-filter button {
+      padding: 4px 8px;
+      font-size: 11px;
+      background: #e9ecef;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .category-filter button:hover,
+    .category-filter button.active {
+      background: #007bff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <a href="../" class="home-btn">🏠 Home</a>
+
+  <div class="container">
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+      <h3>Board Settings</h3>
+      
+      <div class="control-group">
+        <label for="boardTitle">Board Title:</label>
+        <input type="text" id="boardTitle" placeholder="My Communication Board">
+      </div>
+
+      <div class="control-group">
+        <label for="titleSize">Title Size:</label>
+        <select id="titleSize">
+          <option value="small">Small</option>
+          <option value="medium" selected>Medium</option>
+          <option value="large">Large</option>
+          <option value="xlarge">Extra Large</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="titleColor">Title Color:</label>
+        <input type="color" id="titleColor" value="#000000">
+      </div>
+
+      <div class="control-group">
+        <label for="orientation">Page Orientation:</label>
+        <select id="orientation">
+          <option value="portrait" selected>Portrait</option>
+          <option value="landscape">Landscape</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="symbolSize">Default Symbol Size:</label>
+        <select id="symbolSize">
+          <option value="80">Small (80px)</option>
+          <option value="120" selected>Medium (120px)</option>
+          <option value="160">Large (160px)</option>
+          <option value="200">Extra Large (200px)</option>
+          <option value="240">Extra Extra Large (240px)</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="symbolTextColor">Symbol Text Color:</label>
+        <input type="color" id="symbolTextColor" value="#000000">
+      </div>
+
+      <button class="btn" onclick="addTextBox()">📝 Add Text Box</button>
+      <button class="btn" onclick="generatePDF()">📄 Generate PDF</button>
+      <button class="btn btn-danger" onclick="clearCanvas()">🗑️ Clear Canvas</button>
+
+      <div class="info-text">
+        💡 <strong>Tips:</strong><br>
+        • Click symbols below to add to canvas<br>
+        • Click "Add Text Box" for custom text<br>
+        • Drag symbols/text to position them<br>
+        • Click text to edit it<br>
+        • Click 🎨 to change text color<br>
+        • Click [-/+] to adjust text size<br>
+        • Hover and click ✖ to delete<br>
+      </div>
+
+      <h3>Symbol Library</h3>
+      
+      <div class="control-group">
+        <label>Search Symbols:</label>
+        <div style="position: relative;">
+          <input type="text" id="symbolSearch" placeholder="Type to search...">
+          <div id="searchSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-radius: 4px; max-height: 200px; overflow-y: auto; display: none; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.15);"></div>
+        </div>
+      </div>
+      
+      <div class="category-filter" id="categoryFilter">
+        <button class="active" onclick="filterSymbols('all')">All</button>
+      </div>
+
+      <div class="symbol-library" id="symbolLibrary">
+        <!-- Populated by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Main Canvas Area -->
+    <div class="canvas-container">
+      <div class="canvas portrait" id="canvas">
+        <div class="board-title-display" id="boardTitleDisplay"></div>
+        <!-- Symbols will be added here -->
+      </div>
+    </div>
+  </div>
+
+  <script src="../shared/symbols.js"></script>
+
+  <script>
+    // State
+    let symbolIdCounter = 0;
+    let selectedSymbol = null;
+    let draggedSymbol = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+    let currentFilter = 'all';
+
+    // References
+    const canvas = document.getElementById('canvas');
+    const symbolLibraryEl = document.getElementById('symbolLibrary');
+    const boardTitleEl = document.getElementById('boardTitle');
+    const boardTitleDisplay = document.getElementById('boardTitleDisplay');
+    const titleSizeEl = document.getElementById('titleSize');
+    const titleColorEl = document.getElementById('titleColor');
+    const orientationEl = document.getElementById('orientation');
+    const symbolSizeEl = document.getElementById('symbolSize');
+    const symbolTextColorEl = document.getElementById('symbolTextColor');
+    const categoryFilterEl = document.getElementById('categoryFilter');
+    const symbolSearchEl = document.getElementById('symbolSearch');
+    const searchSuggestionsEl = document.getElementById('searchSuggestions');
+
+    // Initialize
+    buildSymbolLibrary();
+    buildCategoryFilter();
+    setupSymbolSearch();
+    
+    // Force initial title update
+    setTimeout(() => {
+      updateBoardTitle();
+    }, 100);
+
+    // Event listeners
+    boardTitleEl.addEventListener('input', updateBoardTitle);
+    boardTitleEl.addEventListener('keyup', updateBoardTitle);
+    titleSizeEl.addEventListener('change', updateBoardTitle);
+    titleColorEl.addEventListener('change', updateBoardTitle);
+    orientationEl.addEventListener('change', updateOrientation);
+
+    // Symbol search functionality
+    function setupSymbolSearch() {
+      symbolSearchEl.addEventListener('input', handleSymbolSearch);
+      symbolSearchEl.addEventListener('focus', handleSymbolSearch);
+      
+      // Close suggestions when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!searchSuggestionsEl.contains(e.target) && e.target !== symbolSearchEl) {
+          hideSuggestions();
+        }
+      });
+    }
+
+    function handleSymbolSearch() {
+      const query = symbolSearchEl.value.trim().toLowerCase();
+      
+      if (!query) {
+        hideSuggestions();
+        return;
+      }
+
+      const matches = symbolLibrary.filter(symbol => {
+        if (symbol.name && symbol.name.toLowerCase().includes(query)) return true;
+        if (symbol.keywords && symbol.keywords.some(k => k.toLowerCase().includes(query))) return true;
+        return false;
+      });
+
+      if (matches.length === 0) {
+        hideSuggestions();
+        return;
+      }
+
+      showSuggestions(matches);
+    }
+
+    function showSuggestions(matches) {
+      searchSuggestionsEl.innerHTML = '';
+      
+      matches.forEach(symbol => {
+        const item = document.createElement('div');
+        item.style.cssText = 'display: flex; align-items: center; gap: 8px; padding: 8px; cursor: pointer; border-bottom: 1px solid #eee;';
+        item.innerHTML = `
+          <img src="${symbol.src}" style="width: 40px; height: 40px; object-fit: contain;">
+          <div style="flex: 1;">
+            <div style="font-weight: bold; font-size: 13px;">${symbol.name}</div>
+            <div style="font-size: 11px; color: #666;">${symbol.category || 'Uncategorized'}</div>
+          </div>
+        `;
+        
+        item.addEventListener('mouseover', () => {
+          item.style.background = '#f0f0f0';
+        });
+        
+        item.addEventListener('mouseout', () => {
+          item.style.background = 'white';
+        });
+        
+        item.addEventListener('click', () => {
+          addSymbolToCanvas(symbol);
+          symbolSearchEl.value = '';
+          hideSuggestions();
+        });
+        
+        searchSuggestionsEl.appendChild(item);
+      });
+      
+      searchSuggestionsEl.style.display = 'block';
+    }
+
+    function hideSuggestions() {
+      searchSuggestionsEl.style.display = 'none';
+      searchSuggestionsEl.innerHTML = '';
+    }
+
+    function updateBoardTitle() {
+      const title = boardTitleEl.value.trim();
+      const size = titleSizeEl.value;
+      const color = titleColorEl.value;
+      const sizes = { small: '18px', medium: '24px', large: '32px', xlarge: '42px' };
+      
+      if (title) {
+        boardTitleDisplay.textContent = title;
+        boardTitleDisplay.style.fontSize = sizes[size];
+        boardTitleDisplay.style.color = color;
+        boardTitleDisplay.style.display = 'block';
+      } else {
+        boardTitleDisplay.style.display = 'none';
+      }
+    }
+
+    function updateOrientation() {
+      const orientation = orientationEl.value;
+      canvas.className = 'canvas ' + orientation;
+    }
+
+    function buildCategoryFilter() {
+      const categories = [...new Set(symbolLibrary.map(s => s.category || 'Uncategorized'))];
+      categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.textContent = cat;
+        btn.onclick = () => filterSymbols(cat);
+        categoryFilterEl.appendChild(btn);
+      });
+    }
+
+    function filterSymbols(category) {
+      currentFilter = category;
+      // Update active button
+      categoryFilterEl.querySelectorAll('button').forEach(btn => {
+        btn.classList.toggle('active', 
+          (category === 'all' && btn.textContent === 'All') ||
+          btn.textContent === category
+        );
+      });
+      buildSymbolLibrary();
+    }
+
+    function buildSymbolLibrary() {
+      symbolLibraryEl.innerHTML = '';
+      const filtered = currentFilter === 'all' 
+        ? symbolLibrary 
+        : symbolLibrary.filter(s => (s.category || 'Uncategorized') === currentFilter);
+
+      filtered.forEach(symbol => {
+        const div = document.createElement('div');
+        div.className = 'library-symbol';
+        div.innerHTML = `
+          <img src="${symbol.src}" alt="${symbol.name}">
+          <div class="library-symbol-name">${symbol.name}</div>
+        `;
+        div.onclick = () => addSymbolToCanvas(symbol);
+        symbolLibraryEl.appendChild(div);
+      });
+    }
+
+    function addSymbolToCanvas(symbol) {
+      const size = parseInt(symbolSizeEl.value);
+      const textColor = symbolTextColorEl.value;
+      const symbolId = `symbol-${symbolIdCounter++}`;
+      
+      // Create symbol element
+      const symbolEl = document.createElement('div');
+      symbolEl.className = 'canvas-symbol';
+      symbolEl.id = symbolId;
+      symbolEl.style.width = size + 'px';
+      symbolEl.style.height = size + 'px';
+      
+      // Random position (centered area)
+      const canvasRect = canvas.getBoundingClientRect();
+      const maxX = canvas.offsetWidth - size - 20;
+      const maxY = canvas.offsetHeight - size - 20;
+      const startX = Math.random() * (maxX - 100) + 50;
+      const startY = Math.random() * (maxY - 100) + 100;
+      
+      symbolEl.style.left = startX + 'px';
+      symbolEl.style.top = startY + 'px';
+      
+      // Calculate font size based on symbol size
+      const fontSize = Math.max(10, Math.floor(size / 10));
+      
+      symbolEl.innerHTML = `
+        <img src="${symbol.src}" alt="${symbol.name}" draggable="false">
+        <div class="canvas-symbol-text" contenteditable="true" style="font-size: ${fontSize}px; color: ${textColor}" data-color="${textColor}">${symbol.name}</div>
+        <input type="color" class="symbol-color-picker" value="${textColor}" title="Change text color">
+        <button class="delete-btn" onclick="deleteElement('${symbolId}')">✖</button>
+      `;
+      
+      // Add drag functionality
+      symbolEl.addEventListener('mousedown', startDrag);
+      
+      // Prevent text editing from triggering drag
+      const textEl = symbolEl.querySelector('.canvas-symbol-text');
+      textEl.addEventListener('mousedown', (e) => e.stopPropagation());
+      textEl.addEventListener('click', function() {
+        this.focus();
+        document.execCommand('selectAll', false, null);
+      });
+      
+      // Color picker functionality
+      const colorPicker = symbolEl.querySelector('.symbol-color-picker');
+      colorPicker.addEventListener('mousedown', (e) => e.stopPropagation());
+      colorPicker.addEventListener('click', (e) => e.stopPropagation());
+      colorPicker.addEventListener('change', function() {
+        const newColor = this.value;
+        textEl.style.color = newColor;
+        textEl.dataset.color = newColor;
+      });
+      
+      canvas.appendChild(symbolEl);
+    }
+
+    function startDrag(e) {
+      if (e.target.classList.contains('canvas-symbol-text')) return;
+      if (e.target.classList.contains('delete-btn')) return;
+      
+      draggedSymbol = e.currentTarget;
+      selectSymbol(draggedSymbol);
+      
+      const rect = draggedSymbol.getBoundingClientRect();
+      const canvasRect = canvas.getBoundingClientRect();
+      
+      dragOffsetX = e.clientX - rect.left;
+      dragOffsetY = e.clientY - rect.top;
+      
+      document.addEventListener('mousemove', drag);
+      document.addEventListener('mouseup', stopDrag);
+      
+      e.preventDefault();
+    }
+
+    function drag(e) {
+      if (!draggedSymbol) return;
+      
+      const canvasRect = canvas.getBoundingClientRect();
+      let newX = e.clientX - canvasRect.left - dragOffsetX;
+      let newY = e.clientY - canvasRect.top - dragOffsetY;
+      
+      // Constrain to canvas
+      const symbolWidth = draggedSymbol.offsetWidth;
+      const symbolHeight = draggedSymbol.offsetHeight;
+      
+      newX = Math.max(0, Math.min(newX, canvas.offsetWidth - symbolWidth));
+      newY = Math.max(0, Math.min(newY, canvas.offsetHeight - symbolHeight));
+      
+      draggedSymbol.style.left = newX + 'px';
+      draggedSymbol.style.top = newY + 'px';
+    }
+
+    function stopDrag() {
+      draggedSymbol = null;
+      document.removeEventListener('mousemove', drag);
+      document.removeEventListener('mouseup', stopDrag);
+    }
+
+    function selectSymbol(symbolEl) {
+      // Deselect all symbols and textboxes
+      canvas.querySelectorAll('.canvas-symbol, .canvas-textbox').forEach(el => {
+        el.classList.remove('selected');
+      });
+      
+      // Select this one
+      if (symbolEl) {
+        symbolEl.classList.add('selected');
+        selectedSymbol = symbolEl;
+      } else {
+        selectedSymbol = null;
+      }
+    }
+
+    function addTextBox() {
+      const textBoxId = `textbox-${symbolIdCounter++}`;
+      
+      const textBoxEl = document.createElement('div');
+      textBoxEl.className = 'canvas-textbox';
+      textBoxEl.id = textBoxId;
+      
+      // Random position
+      const canvasRect = canvas.getBoundingClientRect();
+      const startX = Math.random() * (canvas.offsetWidth - 250) + 50;
+      const startY = Math.random() * (canvas.offsetHeight - 150) + 100;
+      
+      textBoxEl.style.left = startX + 'px';
+      textBoxEl.style.top = startY + 'px';
+      
+      const defaultColor = '#000000';
+      const defaultSize = 18;
+      
+      textBoxEl.innerHTML = `
+        <div class="canvas-textbox-content" contenteditable="true" style="color: ${defaultColor}; font-size: ${defaultSize}px;" data-color="${defaultColor}" data-fontsize="${defaultSize}">Click to edit text</div>
+        <input type="color" class="textbox-color-picker" value="${defaultColor}" title="Change text color">
+        <div class="textbox-size-adjuster" title="Change text size">
+          <button class="decrease-size">-</button>
+          <span class="size-display">${defaultSize}px</span>
+          <button class="increase-size">+</button>
+        </div>
+        <button class="delete-btn" onclick="deleteElement('${textBoxId}')">✖</button>
+      `;
+      
+      // Add drag functionality
+      textBoxEl.addEventListener('mousedown', startDrag);
+      
+      // Prevent text editing from triggering drag
+      const contentEl = textBoxEl.querySelector('.canvas-textbox-content');
+      contentEl.addEventListener('mousedown', (e) => e.stopPropagation());
+      contentEl.addEventListener('click', function() {
+        this.focus();
+        if (this.textContent === 'Click to edit text') {
+          document.execCommand('selectAll', false, null);
+        }
+      });
+      
+      // Color picker functionality
+      const colorPicker = textBoxEl.querySelector('.textbox-color-picker');
+      colorPicker.addEventListener('mousedown', (e) => e.stopPropagation());
+      colorPicker.addEventListener('click', (e) => e.stopPropagation());
+      colorPicker.addEventListener('change', function() {
+        const newColor = this.value;
+        contentEl.style.color = newColor;
+        contentEl.dataset.color = newColor;
+      });
+      
+      // Font size adjuster functionality
+      const sizeAdjuster = textBoxEl.querySelector('.textbox-size-adjuster');
+      const decreaseBtn = sizeAdjuster.querySelector('.decrease-size');
+      const increaseBtn = sizeAdjuster.querySelector('.increase-size');
+      const sizeDisplay = sizeAdjuster.querySelector('.size-display');
+      
+      sizeAdjuster.addEventListener('mousedown', (e) => e.stopPropagation());
+      sizeAdjuster.addEventListener('click', (e) => e.stopPropagation());
+      
+      decreaseBtn.addEventListener('click', () => {
+        let currentSize = parseInt(contentEl.dataset.fontsize) || 18;
+        if (currentSize > 8) {
+          currentSize -= 2;
+          contentEl.style.fontSize = currentSize + 'px';
+          contentEl.dataset.fontsize = currentSize;
+          sizeDisplay.textContent = currentSize + 'px';
+        }
+      });
+      
+      increaseBtn.addEventListener('click', () => {
+        let currentSize = parseInt(contentEl.dataset.fontsize) || 18;
+        if (currentSize < 72) {
+          currentSize += 2;
+          contentEl.style.fontSize = currentSize + 'px';
+          contentEl.dataset.fontsize = currentSize;
+          sizeDisplay.textContent = currentSize + 'px';
+        }
+      });
+      
+      canvas.appendChild(textBoxEl);
+    }
+
+    function deleteElement(elementId) {
+      const element = document.getElementById(elementId);
+      if (element && confirm('Delete this item?')) {
+        element.remove();
+        selectedSymbol = null;
+      }
+    }
+
+    function clearCanvas() {
+      if (confirm('Clear all symbols from canvas?')) {
+        canvas.querySelectorAll('.canvas-symbol').forEach(el => el.remove());
+        selectedSymbol = null;
+      }
+    }
+
+    // Click canvas to deselect
+    canvas.addEventListener('click', (e) => {
+      if (e.target === canvas) {
+        selectSymbol(null);
+      }
+    });
+
+    // PDF Generation
+    async function generatePDF() {
+      const symbols = canvas.querySelectorAll('.canvas-symbol');
+      if (symbols.length === 0) {
+        alert('Add some symbols to the canvas first!');
+        return;
+      }
+
+      const loadingOverlay = document.createElement("div");
+      loadingOverlay.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:20000;";
+      loadingOverlay.innerHTML = '<div style="color:white;font-size:1.5em;">Generating PDF...</div>';
+      document.body.appendChild(loadingOverlay);
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const orientation = orientationEl.value;
+        const doc = new jsPDF(orientation === 'landscape' ? 'l' : 'p', 'mm', 'a4');
+        
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+        
+        // Scale factor (canvas pixels to PDF mm)
+        const canvasWidth = canvas.offsetWidth;
+        const canvasHeight = canvas.offsetHeight;
+        const scaleX = pageW / canvasWidth;
+        const scaleY = pageH / canvasHeight;
+        
+        // Draw title
+        const title = boardTitleEl.value.trim();
+        if (title) {
+          const titleSizes = { small: 14, medium: 18, large: 24, xlarge: 32 };
+          const titleColor = titleColorEl.value;
+          doc.setFontSize(titleSizes[titleSizeEl.value]);
+          doc.setFont('helvetica', 'bold');
+          
+          // Convert hex color to RGB for PDF
+          const r = parseInt(titleColor.substr(1,2), 16);
+          const g = parseInt(titleColor.substr(3,2), 16);
+          const b = parseInt(titleColor.substr(5,2), 16);
+          doc.setTextColor(r, g, b);
+          
+          doc.text(title, pageW / 2, 15, { align: 'center' });
+        }
+        
+        // Draw each symbol and text box
+        const symbols = canvas.querySelectorAll('.canvas-symbol');
+        const textBoxes = canvas.querySelectorAll('.canvas-textbox');
+        
+        for (const symbolEl of symbols) {
+          const img = symbolEl.querySelector('img');
+          const textEl = symbolEl.querySelector('.canvas-symbol-text');
+          
+          const x = parseFloat(symbolEl.style.left) * scaleX;
+          const y = parseFloat(symbolEl.style.top) * scaleY;
+          const w = symbolEl.offsetWidth * scaleX;
+          const h = symbolEl.offsetHeight * scaleY;
+          
+          // Draw border with rounded corners
+          doc.setDrawColor(0);
+          doc.setLineWidth(0.5);
+          doc.roundedRect(x, y, w, h, 2, 2, 'S');
+          
+          // Calculate space for text at bottom
+          const textSpace = 10; // mm reserved for text
+          const imgAvailableHeight = h - textSpace - 4;
+          
+          // Draw image
+          if (img.src) {
+            try {
+              const imgData = await getImageDataURL(img.src);
+              const imgPadding = 2;
+              const imgMaxW = w - (imgPadding * 2);
+              const imgMaxH = imgAvailableHeight;
+              
+              // Load image to get natural dimensions
+              const tempImg = await loadImageDimensions(imgData);
+              const imgAspect = tempImg.width / tempImg.height;
+              
+              let imgW = imgMaxW;
+              let imgH = imgMaxH;
+              
+              // Preserve aspect ratio
+              if (imgW / imgH > imgAspect) {
+                imgW = imgH * imgAspect;
+              } else {
+                imgH = imgW / imgAspect;
+              }
+              
+              const imgX = x + (w - imgW) / 2;
+              const imgY = y + imgPadding;
+              
+              doc.addImage(imgData, 'PNG', imgX, imgY, imgW, imgH);
+            } catch (err) {
+              console.warn('Image load failed', err);
+            }
+          }
+          
+          // Draw text INSIDE box at bottom
+          const text = textEl.textContent.trim();
+          if (text) {
+            const fontSize = parseInt(window.getComputedStyle(textEl).fontSize);
+            doc.setFontSize(Math.max(8, fontSize * scaleX * 0.5)); // Better scaling
+            
+            // Get text color from data attribute or computed style
+            const textColor = textEl.dataset.color || window.getComputedStyle(textEl).color;
+            
+            // Convert color to RGB for PDF
+            if (textColor.startsWith('#')) {
+              const r = parseInt(textColor.substr(1,2), 16);
+              const g = parseInt(textColor.substr(3,2), 16);
+              const b = parseInt(textColor.substr(5,2), 16);
+              doc.setTextColor(r, g, b);
+            } else {
+              doc.setTextColor(0); // Default black
+            }
+            
+            doc.setFont('helvetica', 'bold');
+            
+            const maxTextWidth = w - 4;
+            const lines = doc.splitTextToSize(text, maxTextWidth);
+            const textY = y + h - 3;
+            
+            doc.text(lines, x + w / 2, textY, { align: 'center' });
+          }
+        }
+        
+        // Draw text boxes
+        for (const textBoxEl of textBoxes) {
+          const contentEl = textBoxEl.querySelector('.canvas-textbox-content');
+          
+          const x = parseFloat(textBoxEl.style.left) * scaleX;
+          const y = parseFloat(textBoxEl.style.top) * scaleY;
+          const w = textBoxEl.offsetWidth * scaleX;
+          const h = textBoxEl.offsetHeight * scaleY;
+          
+          // Draw text (no border for text boxes in PDF)
+          const text = contentEl.textContent.trim();
+          if (text && text !== 'Click to edit text') {
+            const fontSize = parseInt(contentEl.dataset.fontsize) || parseInt(window.getComputedStyle(contentEl).fontSize);
+            doc.setFontSize(Math.max(12, fontSize * scaleX * 0.8)); // Much larger scaling
+            
+            // Get text color
+            const textColor = contentEl.dataset.color || '#000000';
+            if (textColor.startsWith('#')) {
+              const r = parseInt(textColor.substr(1,2), 16);
+              const g = parseInt(textColor.substr(3,2), 16);
+              const b = parseInt(textColor.substr(5,2), 16);
+              doc.setTextColor(r, g, b);
+            } else {
+              doc.setTextColor(0);
+            }
+            
+            doc.setFont('helvetica', 'bold');
+            
+            // Split text into lines to fit width
+            const lines = doc.splitTextToSize(text, w - 4);
+            const lineHeight = fontSize * scaleX * 0.8 * 0.35; // Line spacing in mm
+            const startY = y + 10;
+            
+            lines.forEach((line, idx) => {
+              doc.text(line, x + w / 2, startY + (idx * lineHeight), { align: 'center' });
+            });
+          }
+        }
+        
+        doc.save('advanced-communication-board.pdf');
+        loadingOverlay.innerHTML = '<div style="color:white;font-size:1.5em;">✅ PDF Generated!</div>';
+        setTimeout(() => loadingOverlay.remove(), 1500);
+        
+      } catch (error) {
+        console.error('PDF error:', error);
+        loadingOverlay.remove();
+        alert('PDF generation failed. Check console for details.');
+      }
+    }
+
+    async function getImageDataURL(src) {
+      if (src.startsWith('data:')) return src;
+      
+      return new Promise((resolve, reject) => {
+        fetch(src, { mode: 'cors' })
+          .then(res => res.blob())
+          .then(blob => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          })
+          .catch(() => {
+            // Fallback: load via Image and canvas
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              canvas.width = img.naturalWidth;
+              canvas.height = img.naturalHeight;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              resolve(canvas.toDataURL('image/png'));
+            };
+            img.onerror = reject;
+            img.src = src;
+          });
+      });
+    }
+
+    function loadImageDimensions(dataURL) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = dataURL;
+      });
+    }
+
+    // Global functions
+    window.filterSymbols = filterSymbols;
+    window.deleteSymbol = deleteSymbol;
+    window.clearCanvas = clearCanvas;
+    window.generatePDF = generatePDF;
+  </script>
+
+  <!-- buy-me-a-coffee -->
+  <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js"
+    data-name="bmc-button" data-slug="nilltronic" data-color="#FFDD00" data-emoji="" data-font="Cookie"
+    data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff">
+  </script>
+</body>
+</html>
