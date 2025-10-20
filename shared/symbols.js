@@ -19,6 +19,7 @@
   { name:"Eat", src:"../shared/images/eat.png", keywords:["snack","food","eat"], category:"Needs" },
   { name:"Wash", src:"../shared/images/wash.png", keywords:["wash","wash hands","sink"], category:"Needs" },
   { name:"Food", src:"../shared/images/food.png", keywords:["food","eat","snack"], category:"Needs" },
+  { name:"Want", src:"../shared/images/want.png", keywords:["want","need"], category:"Needs" },
 
   // Actions
   { name:"Yes", src:"../shared/images/yes.png", keywords:["yes","affirm","ok"], category:"Actions" },
@@ -101,6 +102,7 @@
 
   //adjectives
     { name:"Fun", src:"../shared/images/fun.png", keywords:["fun"], category:"Adjectives" },
+    { name:"More", src:"../shared/images/more.png", keywords:["more"], category:"Adjectives" },
 
   //Emotions
     { name:"Frustrated", src:"../shared/images/frustrated.png", keywords:["frustrated"], category:"Emotions" },
