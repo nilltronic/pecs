@@ -41,6 +41,7 @@
 
   // Places
   { name:"Outside", src:"../shared/images/outside.png", keywords:["outside","play out"], category:"Places" },
+  { name:"Outside", src:"../shared/images/outside1.png", keywords:["outside","play out"], category:"Places" },
   { name:"Sensory", src:"../shared/images/sensory.png", keywords:["sensory","sensory room"], category:"Places" },
   { name:"Home", src:"../shared/images/home.png", keywords:["home","house"], category:"Places" },
   { name:"Pirate", src:"../shared/images/pirate.png", keywords:["pirate","ship"], category:"Places" },
@@ -123,6 +124,7 @@
 
 // Define available categories (extracted from symbolLibrary)
 window.symbolCategories = [...new Set(window.symbolLibrary.map(s => s.category || 'Uncategorized'))];
+
 
 
 
