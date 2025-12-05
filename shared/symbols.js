@@ -20,6 +20,7 @@
   { name:"Wash", src:"../shared/images/wash.png", keywords:["wash","wash hands","sink"], category:"Needs" },
   { name:"Food", src:"../shared/images/food.png", keywords:["food","eat","snack"], category:"Needs" },
   { name:"Want", src:"../shared/images/want.png", keywords:["want","need"], category:"Needs" },
+  { name:"Dinner", src:"../shared/images/dinner.png", keywords:["dinner","meal","lunch"], category:"Needs" },
 
   // Actions
   { name:"Yes", src:"../shared/images/yes.png", keywords:["yes","affirm","ok"], category:"Actions" },
@@ -124,6 +125,7 @@
 
 // Define available categories (extracted from symbolLibrary)
 window.symbolCategories = [...new Set(window.symbolLibrary.map(s => s.category || 'Uncategorized'))];
+
 
 
 
