@@ -46,6 +46,7 @@
   { name:"Pirate", src:"../shared/images/pirate.png", keywords:["pirate","ship"], category:"Places" },
   { name:"Classroom", src:"../shared/images/classroom.png", keywords:["classroom","class"], category:"Places" },
   { name:"Cafeteria", src:"../shared/images/cafeteria.png", keywords:["cafeteria","lunch","dinner"], category:"Places" },
+   { name:"Forest School", src:"../shared/images/forest.png", keywords:["forest school","wood","forest"], category:"Places" },
 
   // Activities
   { name:"Register", src:"../shared/images/register.png", keywords:["register","registration"], category:"Activities" },
@@ -122,5 +123,6 @@
 
 // Define available categories (extracted from symbolLibrary)
 window.symbolCategories = [...new Set(window.symbolLibrary.map(s => s.category || 'Uncategorized'))];
+
 
 
