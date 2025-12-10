@@ -94,6 +94,7 @@
   { name:"Glitter", src:"../shared/images/glitter.png", keywords:["glitter"], category:"Nouns" },
   { name:"Bubbles", src:"../shared/images/bubbles.png", keywords:["bubbles","blow bubbles"], category:"Nouns" },
   { name:"Sport", src:"../shared/images/sports.png", keywords:["sport","sports"], category:"Nouns" },
+  { name:"Coat", src:"../shared/images/coat.png", keywords:["coat","jacket"], category:"Nouns" },
 
   //Verbs
   { name:"Dance", src:"../shared/images/dance.png", keywords:["dance"], category:"Verbs" },
@@ -126,6 +127,7 @@
 
 // Define available categories (extracted from symbolLibrary)
 window.symbolCategories = [...new Set(window.symbolLibrary.map(s => s.category || 'Uncategorized'))];
+
 
 
 
